@@ -15,8 +15,8 @@ public class MemberPoint {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "MEMBER_POINT_ID", nullable = false)
-    private Long memberPointId;
+    @Column(name = "ID", nullable = false)
+    private Long id;
 
     /**
      * 회원 ID
@@ -27,8 +27,8 @@ public class MemberPoint {
     /**
      * 회원 포인트 금액
      */
-    @Column(name = "MEMBER_POINT_AMOUNT", nullable = false)
-    private int memberPointAmount;
+    @Column(name = "AMOUNT", nullable = false)
+    private int amount;
 
     /**
      * 회원 포인트 만료 시점
