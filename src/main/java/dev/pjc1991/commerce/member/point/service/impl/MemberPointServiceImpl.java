@@ -21,7 +21,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     }
 
     @Override
-    public List<MemberPointEvent> getMemberPointLogList(MemberPointEventSearch search) {
+    public List<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search) {
         return null;
     }
 

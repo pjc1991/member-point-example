@@ -21,7 +21,7 @@ public interface MemberPointService {
      * @param search
      * @return
      */
-    List<MemberPointEvent> getMemberPointLogList(MemberPointEventSearch search);
+    List<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search);
 
     /**
      * 회원 적립금 적립
