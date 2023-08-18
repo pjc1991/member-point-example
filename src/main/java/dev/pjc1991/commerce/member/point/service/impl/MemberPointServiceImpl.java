@@ -7,9 +7,9 @@ import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
 import dev.pjc1991.commerce.member.point.service.MemberPointService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 @Transactional
@@ -21,7 +21,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     }
 
     @Override
-    public List<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search) {
+    public Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search) {
         return null;
     }
 

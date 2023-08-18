@@ -4,8 +4,8 @@ import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
 import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
+import org.springframework.data.domain.Page;
 
-import java.util.List;
 
 public interface MemberPointService {
 
@@ -21,7 +21,7 @@ public interface MemberPointService {
      * @param search
      * @return
      */
-    List<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search);
+    Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search);
 
     /**
      * 회원 적립금 적립
