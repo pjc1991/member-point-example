@@ -11,13 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
-import org.springframework.test.annotation.Rollback;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-@Rollback(true)
 class MemberPointServiceTest {
 
     private static final Logger log = LoggerFactory.getLogger(MemberPointServiceTest.class);
@@ -31,23 +29,23 @@ class MemberPointServiceTest {
     void getMemberPointTotal() {
         // given
 
-        // 랜덤한 금액을 적립한다.
+        // 랜덤한 금액을 적립합니다.
         int testPointAmount = Math.toIntExact(Math.round(Math.random() * 100000));
 
-        // 적립금 생성 요청 오브젝트를 생성한다.
+        // 적립금 생성 요청 오브젝트를 생성합니다.
         MemberPointCreateRequest memberPointCreateRequest = getTestMemberPointCreateRequest(TEST_MEMBER_ID, testPointAmount);
 
-        // 적립금을 추가한다.
+        // 적립금을 추가합니다.
         memberPointService.earnMemberPoint(memberPointCreateRequest);
 
         // when
 
-        // 적립금 합계를 조회한다.
+        // 적립금 합계를 조회합니다.
         int result = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
 
         // then
 
-        // 적립금 합계가 예상한 값과 같은지 확인한다.
+        // 적립금 합계가 예상한 값과 같은지 확인합니다.
         assertEquals(testPointAmount, result);
     }
 
@@ -55,10 +53,10 @@ class MemberPointServiceTest {
     void getMemberPointEvents() {
         // given
 
-        // 랜덤한 갯수의 적립금을 적립한다.
+        // 랜덤한 갯수의 적립금을 적립합니다.
         int testCount = Math.toIntExact(Math.round(Math.random() * 100));
 
-        // 적립금 생성 요청 오브젝트를 생성한다.
+        // 적립금 생성 요청 오브젝트를 생성합니다.
         for (int i = 0; i < testCount; i++) {
             MemberPointCreateRequest memberPointCreateRequest = getTestMemberPointCreateRequest(TEST_MEMBER_ID, Math.toIntExact(Math.round(Math.random() * 100000)));
             memberPointService.earnMemberPoint(memberPointCreateRequest);
@@ -66,8 +64,8 @@ class MemberPointServiceTest {
 
         // when
 
-        // 적립금 적립/사용 내역을 조회한다.
-        // 검색 파라미터를 담은 오브젝트를 생성한다.
+        // 적립금 적립/사용 내역을 조회합니다.
+        // 검색 파라미터를 담은 오브젝트를 생성합니다.
         MemberPointEventSearch search = new MemberPointEventSearch();
         search.setMemberId(TEST_MEMBER_ID);
         search.setPage(0);
@@ -77,10 +75,10 @@ class MemberPointServiceTest {
 
         // then
 
-        // 조회된 적립금 적립/사용 내역의 갯수가 예상한 값과 같은지 확인한다.
+        // 조회된 적립금 적립/사용 내역의 갯수가 예상한 값과 같은지 확인합니다.
         assertEquals(testCount, result.getTotalElements());
 
-        // 정상적으로 페이징이 되었는지 확인한다.
+        // 정상적으로 페이징이 되었는지 확인합니다.
         int expectedSize = Math.min(testCount, 10);
         assertEquals(expectedSize, result.getSize());
     }
@@ -89,33 +87,33 @@ class MemberPointServiceTest {
     void earnMemberPoint() {
         // given
 
-        // 현재 금액을 조회한다.
+        // 현재 금액을 조회합니다.
         int currentPoint = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
 
-        // 랜덤한 금액을 적립한다.
+        // 랜덤한 금액을 적립합니다.
         int testPointAmount = Math.toIntExact(Math.round(Math.random() * 100000));
 
-        // 예상 금액을 계산한다.
+        // 예상 금액을 계산합니다.
         int expectedPoint = currentPoint + testPointAmount;
 
         // when
 
-        // 적립금 생성 요청 오브젝트를 생성한다.
+        // 적립금 생성 요청 오브젝트를 생성합니다.
         MemberPointCreateRequest memberPointCreateRequest = getTestMemberPointCreateRequest(TEST_MEMBER_ID, testPointAmount);
 
-        // 적립금을 추가한다.
+        // 적립금을 추가합니다.
         MemberPointEvent result = memberPointService.earnMemberPoint(memberPointCreateRequest);
 
         // then
 
-        // 적립금 적립/사용 내역이 정상적으로 생성되었는지 확인한다.
+        // 적립금 적립/사용 내역이 정상적으로 생성되었는지 확인합니다.
         assertNotNull(result);
 
-        // 생성된 객체의 값이 정상적인지 확인한다.
+        // 생성된 객체의 값이 정상적인지 확인합니다.
         assertEquals(TEST_MEMBER_ID, result.getMemberId());
         assertEquals(testPointAmount, result.getAmount());
 
-        // 적립금 합계가 예상한 값과 같은지 확인한다.
+        // 적립금 합계가 예상한 값과 같은지 확인합니다.
         assertEquals(expectedPoint, memberPointService.getMemberPointTotal(TEST_MEMBER_ID));
 
     }
@@ -128,21 +126,24 @@ class MemberPointServiceTest {
         int currentPoint = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
 
         // 랜덤한 금액을 적립한다.
-        int testPointAmount = Math.toIntExact(Math.round(Math.random() * 100000));
+        int testPointEarnAmount = Math.toIntExact(Math.round(Math.random() * 100000));
+
+        // 랜덤한 금액을 사용한다. 사용할 금액은 적립금 적립 금액보다 작거나 같다.
+        int testPointUseAmount = -Math.toIntExact(Math.round(Math.random() * testPointEarnAmount));
+
+        // 예상 금액을 계산한다.
+        int expectedPoint = currentPoint + testPointEarnAmount - testPointUseAmount;
 
         // 적립금 생성 요청 오브젝트를 생성한다.
-        MemberPointCreateRequest memberPointCreateRequest = getTestMemberPointCreateRequest(TEST_MEMBER_ID, testPointAmount);
+        MemberPointCreateRequest memberPointCreateRequest = getTestMemberPointCreateRequest(TEST_MEMBER_ID, testPointEarnAmount);
 
         // 적립금을 추가한다.
         memberPointService.earnMemberPoint(memberPointCreateRequest);
 
         // when
 
-        // 랜덤한 금액을 사용한다.
-        int usePointAmount = Math.toIntExact(Math.round(Math.random() * testPointAmount));
-
         // 적립금 사용 요청 오브젝트를 생성한다.
-        MemberPointUseRequest memberPointUseRequest = getTestMemberPointUseRequest(usePointAmount, TEST_MEMBER_ID);
+        MemberPointUseRequest memberPointUseRequest = getTestMemberPointUseRequest(testPointUseAmount, TEST_MEMBER_ID);
 
         // 적립금을 사용한다.
         MemberPointEvent result = memberPointService.useMemberPoint(memberPointUseRequest);
@@ -154,10 +155,10 @@ class MemberPointServiceTest {
 
         // 생성된 객체의 값이 정상적인지 확인한다.
         assertEquals(TEST_MEMBER_ID, result.getMemberId());
-        assertEquals(usePointAmount, result.getAmount());
+        assertEquals(testPointUseAmount, result.getAmount());
 
         // 적립금 합계가 예상한 값과 같은지 확인한다.
-        assertEquals(testPointAmount - usePointAmount, memberPointService.getMemberPointTotal(TEST_MEMBER_ID));
+        assertEquals(expectedPoint, memberPointService.getMemberPointTotal(TEST_MEMBER_ID));
     }
 
     /**
@@ -186,5 +187,21 @@ class MemberPointServiceTest {
         memberPointCreateRequest.setMemberId(memberId);
         memberPointCreateRequest.setAmount(amount);
         return memberPointCreateRequest;
+    }
+
+    /**
+     * 테스트용 적립금 적립/사용 내역 검색 DTO를 생성합니다.
+     *
+     * @param memberId
+     * @param page
+     * @param size
+     * @return
+     */
+    private static MemberPointEventSearch getMemberPointEventSearch(int memberId, int page, int size) {
+        MemberPointEventSearch search = new MemberPointEventSearch();
+        search.setMemberId(memberId);
+        search.setPage(page);
+        search.setSize(size);
+        return search;
     }
 }
