@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 /**
  * 회원 적립금 이벤트 도메인
@@ -34,6 +35,12 @@ public class MemberPointEvent {
      */
     @Column(name = "AMOUNT", nullable = false)
     private int amount;
+
+    /**
+     * 회원 적립금 적립/사용 내역
+     */
+    @OneToMany(mappedBy = "memberPointEvent", cascade = CascadeType.ALL)
+    private Set<MemberPointDetail> memberPointDetails;
 
     /**
      * 회원 적립금 만료 시점

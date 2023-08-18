@@ -24,11 +24,12 @@ public class MemberPointDetail {
     private Long id;
 
     /**
-     * 회원 적립금 이벤트 ID
-     * 이 상세 내역을 생성한 이벤트의 ID
+     * 회원 적립금 이벤트
+     * 이 상세 내역을 생성한 이벤트
      */
-    @Column(name = "MEMBER_POINT_EVENT_ID", nullable = false)
-    private Long memberPointEventSourceId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "MEMBER_POINT_EVENT_ID", nullable = false)
+    private MemberPointEvent memberPointEvent;
 
     /**
      * 회원 적립금 상세 내역 사용 ID
