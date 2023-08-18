@@ -25,7 +25,8 @@ class MemberPointServiceTest {
     }
 
     @Test
-    void getMemberPointLogList() {
+    void getMemberPointEvents() {
+
     }
 
     @Test
