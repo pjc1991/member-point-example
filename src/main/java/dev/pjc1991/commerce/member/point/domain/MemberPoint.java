@@ -25,7 +25,8 @@ public class MemberPoint {
     private int memberId;
 
     /**
-     * 회원 포인트 금액
+     * 회원 포인트 적립/사용 금액
+     * 적립: 양수, 사용: 음수
      */
     @Column(name = "AMOUNT", nullable = false)
     private int amount;
