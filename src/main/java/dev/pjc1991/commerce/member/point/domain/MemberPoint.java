@@ -5,6 +5,10 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+/**
+ * 회원 적립금 도메인
+ *
+ */
 @Entity
 @Table(name = "MEMBER_POINT")
 @Getter
