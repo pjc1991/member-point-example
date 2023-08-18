@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class MemberPointDetail {
 
     /**
-     * 회원 포인트 상세 내역 ID
+     * 회원 적립금 상세 내역 ID
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +24,7 @@ public class MemberPointDetail {
     private Long id;
 
     /**
-     * 회원 포인트 ID
+     * 회원 적립금 ID
      */
     @Column(name = "MEMBER_POINT_ID", nullable = false)
     private Long memberPointId;
