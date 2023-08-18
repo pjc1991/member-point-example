@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class MemberPoint {
 
     /**
-     * 회원 포인트 ID
+     * 회원 적립금 ID
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,20 +29,20 @@ public class MemberPoint {
     private int memberId;
 
     /**
-     * 회원 포인트 적립/사용 금액
+     * 회원 적립금 적립/사용 금액
      * 적립: 양수, 사용: 음수
      */
     @Column(name = "AMOUNT", nullable = false)
     private int amount;
 
     /**
-     * 회원 포인트 만료 시점
+     * 회원 적립금 만료 시점
      */
     @Column(name = "EXPIRE_AT", nullable = false)
     private LocalDateTime expireAt;
 
     /**
-     * 회원 포인트 생성 시점
+     * 회원 적립금 생성 시점
      */
     @Column(name = "CREATED_AT", nullable = false)
     private LocalDateTime createdAt;
