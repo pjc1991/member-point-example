@@ -25,9 +25,24 @@ public class MemberPointDetail {
 
     /**
      * 회원 적립금 이벤트 ID
+     * 이 상세 내역을 생성한 이벤트의 ID
      */
     @Column(name = "MEMBER_POINT_EVENT_ID", nullable = false)
-    private Long memberPointEventId;
+    private Long memberPointEventSourceId;
+
+    /**
+     * 회원 적립금 상세 내역 사용 ID
+     * 이 상세 내역이 적립금 사용, 만료일 경우 사용 대상이 되는 상세 내역의 ID
+     */
+    @Column(name = "MEMBER_POINT_DETAIL_USE_ID")
+    private Long memberPointDetailUseId;
+
+    /**
+     * 회원 적립금 상세 내역 환불 ID
+     * 이 상세 내역이 적립금 환불일 경우, 대상이 되는 상세 내역의 ID
+     */
+    @Column(name = "MEMBER_POINT_DETAIL_REFUND_ID")
+    private Long memberPointDetailRefundId;
 
     /**
      * 포인트 적립/사용량
@@ -42,7 +57,5 @@ public class MemberPointDetail {
      */
     @Column(name = "CREATED_AT", nullable = false)
     private LocalDateTime createdAt;
-
-
 
 }
