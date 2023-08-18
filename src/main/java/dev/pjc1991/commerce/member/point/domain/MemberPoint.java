@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * 회원 적립금 도메인
@@ -38,7 +40,7 @@ public class MemberPoint {
     /**
      * 회원 적립금 만료 시점
      */
-    @Column(name = "EXPIRE_AT", nullable = false)
+    @Column(name = "EXPIRE_AT")
     private LocalDateTime expireAt;
 
     /**
