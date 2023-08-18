@@ -1,6 +1,6 @@
 package dev.pjc1991.commerce.member.point.service;
 
-import dev.pjc1991.commerce.member.point.domain.MemberPoint;
+import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
 import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
@@ -21,20 +21,20 @@ public interface MemberPointService {
      * @param search
      * @return
      */
-    List<MemberPoint> getMemberPointLogList(MemberPointEventSearch search);
+    List<MemberPointEvent> getMemberPointLogList(MemberPointEventSearch search);
 
     /**
      * 회원 적립금 적립
      * @param memberPointCreate
      * @return
      */
-    MemberPoint earnMemberPoint(MemberPointCreateRequest memberPointCreate);
+    MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate);
 
     /**
      * 회원 적립금 사용
      * @param memberPointUse
      * @return
      */
-    MemberPoint useMemberPoint(MemberPointUseRequest memberPointUse);
+    MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUse);
 
 }

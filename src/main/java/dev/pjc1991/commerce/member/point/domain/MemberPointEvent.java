@@ -4,20 +4,18 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
- * 회원 적립금 도메인
+ * 회원 적립금 이벤트 도메인
  *
  */
 @Entity
 @Table(name = "MEMBER_POINT")
 @Getter
-public class MemberPoint {
+public class MemberPointEvent {
 
     /**
-     * 회원 적립금 ID
+     * 회원 적립금 이벤트 ID
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

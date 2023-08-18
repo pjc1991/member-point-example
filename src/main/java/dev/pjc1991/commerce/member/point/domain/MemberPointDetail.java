@@ -24,10 +24,10 @@ public class MemberPointDetail {
     private Long id;
 
     /**
-     * 회원 적립금 ID
+     * 회원 적립금 이벤트 ID
      */
-    @Column(name = "MEMBER_POINT_ID", nullable = false)
-    private Long memberPointId;
+    @Column(name = "MEMBER_POINT_EVENT_ID", nullable = false)
+    private Long memberPointEventId;
 
     /**
      * 포인트 적립/사용량
