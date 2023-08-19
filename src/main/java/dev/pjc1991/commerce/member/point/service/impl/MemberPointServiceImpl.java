@@ -123,7 +123,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         for (MemberPointDetailRemain memberPointDetailRemain : memberPointDetailAvailable.getContent()) {
             // 사용 금액과 적립금 상세 내역 중 작은 값으로 생성합니다.
             int useAmount = Math.min(useAmountRemain, memberPointDetailRemain.getRemain());
-            MemberPointDetail current = MemberPointDetail.useMemberPointDetail(useEvent, memberPointDetailRemain, memberPointDetailRemain.getRemain());
+            MemberPointDetail current = MemberPointDetail.useMemberPointDetail(useEvent, memberPointDetailRemain, useAmount);
             memberPointDetails.add(current);
             useAmountRemain -= memberPointDetailRemain.getRemain();
 
