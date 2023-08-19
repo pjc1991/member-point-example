@@ -1,4 +1,5 @@
 package dev.pjc1991.commerce.member.point.service.impl;
+import dev.pjc1991.commerce.member.point.domain.MemberPointDetail;
 import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
@@ -33,9 +34,21 @@ public class MemberPointServiceImpl implements MemberPointService {
         return null;
     }
 
+    /**
+     * 회원에게 적립금을 적립합니다.
+     * @param memberPointCreate
+     * 회원 적립금 생성에 필요한 값을 담고 있는 DTO
+     * @return
+     * 회원 적립금 이벤트
+     */
     @Override
     public MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate) {
-        return null;
+        MemberPointEvent event = MemberPointEvent.earnMemberPoint(memberPointCreate);
+        event = memberPointEventRepository.save(event);
+
+        MemberPointDetail detail = MemberPointDetail.earnMemberPointDetail(event);
+        memberPointDetailRepository.save(detail);
+        return event;
     }
 
     @Override

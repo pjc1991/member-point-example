@@ -1,7 +1,10 @@
 package dev.pjc1991.commerce.member.point.domain;
 
+import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -13,6 +16,7 @@ import java.util.Set;
 @Entity
 @Table(name = "MEMBER_POINT")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberPointEvent {
 
     /**
@@ -54,4 +58,20 @@ public class MemberPointEvent {
     @Column(name = "CREATED_AT", nullable = false)
     private LocalDateTime createdAt;
 
+    /**
+     * 회원 적립금 만료 기간 (개월)
+     * 이 기간이 지나면 적립금을 만료 처리합니다.
+     */
+    @Transient
+    public static final int MEMBER_POINT_EXPIRE_MONTH = 12;
+
+
+    public static MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate) {
+        MemberPointEvent memberPointEvent = new MemberPointEvent();
+        memberPointEvent.memberId = memberPointCreate.getMemberId();
+        memberPointEvent.amount = memberPointCreate.getAmount();
+        memberPointEvent.createdAt = LocalDateTime.now();
+        memberPointEvent.expireAt = memberPointEvent.createdAt.plusMonths(MEMBER_POINT_EXPIRE_MONTH);
+        return memberPointEvent;
+    }
 }

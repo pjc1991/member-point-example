@@ -59,4 +59,29 @@ public class MemberPointDetail {
     @Column(name = "CREATED_AT", nullable = false)
     private LocalDateTime createdAt;
 
+    /**
+     * 회원 적립금 적립 발생에 대한 상세 내역을 생성합니다.
+     * @param earnEvent
+     * 회원 적립금 적립 이벤트
+     * @return
+     * 회원 적립금 적립 상세 내역
+     */
+    public static MemberPointDetail earnMemberPointDetail(MemberPointEvent earnEvent) {
+        if (earnEvent == null) {
+            throw new IllegalArgumentException("회원 적립금 적립 이벤트가 null입니다.");
+        }
+
+        if (earnEvent.getAmount() < 0) {
+            throw new IllegalArgumentException("회원 적립금 적립 이벤트의 적립/사용량이 음수입니다.");
+        }
+
+        MemberPointDetail memberPointDetail = new MemberPointDetail();
+        memberPointDetail.memberPointEvent = earnEvent;
+        memberPointDetail.amount = earnEvent.getAmount();
+        memberPointDetail.createdAt = earnEvent.getCreatedAt();
+        earnEvent.getMemberPointDetails().add(memberPointDetail);
+
+        return memberPointDetail;
+
+    }
 }
