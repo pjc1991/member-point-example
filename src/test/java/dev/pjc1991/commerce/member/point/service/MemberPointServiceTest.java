@@ -141,7 +141,7 @@ class MemberPointServiceTest {
         int testPointEarnAmount = Math.toIntExact(Math.round(Math.random() * maxTestPointAmount));
 
         // 랜덤한 금액을 사용한다. 사용할 금액은 적립금 적립 금액보다 작거나 같다.
-        int testPointUseAmount = -Math.toIntExact(Math.round(Math.random() * testPointEarnAmount));
+        int testPointUseAmount = Math.toIntExact(Math.round(Math.random() * testPointEarnAmount));
 
         // 예상 금액을 계산한다.
         int expectedPoint = currentPoint + testPointEarnAmount - testPointUseAmount;
@@ -167,7 +167,7 @@ class MemberPointServiceTest {
 
         // 생성된 객체의 값이 정상적인지 확인한다.
         assertEquals(TEST_MEMBER_ID, result.getMemberId());
-        assertEquals(testPointUseAmount, result.getAmount());
+        assertEquals(-testPointUseAmount, result.getAmount());
 
         // 적립금 합계가 예상한 값과 같은지 확인한다.
         assertEquals(expectedPoint, memberPointService.getMemberPointTotal(TEST_MEMBER_ID));
