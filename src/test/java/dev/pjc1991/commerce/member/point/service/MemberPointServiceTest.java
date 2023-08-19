@@ -46,6 +46,9 @@ class MemberPointServiceTest {
         // then
 
         // 적립금 합계가 예상한 값과 같은지 확인합니다.
+        log.info("expected point: {}", testPointAmount);
+        log.info("result point: {}", result);
+
         assertEquals(testPointAmount, result);
     }
 
@@ -111,7 +114,10 @@ class MemberPointServiceTest {
         assertEquals(testPointAmount, result.getAmount());
 
         // 적립금 합계가 예상한 값과 같은지 확인합니다.
-        assertEquals(expectedPoint, memberPointService.getMemberPointTotal(TEST_MEMBER_ID));
+        int resultPoint = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+        log.info("expected point: {}", expectedPoint);
+        log.info("result point: {}", resultPoint);
+        assertEquals(expectedPoint, resultPoint);
 
     }
 
