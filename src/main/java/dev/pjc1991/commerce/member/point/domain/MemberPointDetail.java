@@ -32,12 +32,12 @@ public class MemberPointDetail {
     private MemberPointEvent memberPointEvent;
 
     /**
-     * 회원 적립금 상세 내역 사용 ID
-     * 이 상세 내역이 적립금 사용, 만료일 경우 사용 대상이 되는 상세 내역의 ID
+     * 회원 적립금 상세 내역 그룹 ID
      * 합계를 계산할 때 이 ID를 기준으로 합계를 계산합니다. (GROUP BY)
+     * 이 상세 내역이 적립금 사용, 만료일 경우 사용 대상이 되는 상세 내역의 ID
      */
-    @Column(name = "MEMBER_POINT_DETAIL_USE_ID")
-    private Long memberPointDetailUseId;
+    @Column(name = "MEMBER_POINT_DETAIL_GROUP_ID")
+    private Long memberPointDetailGroupId;
 
     /**
      * 회원 적립금 상세 내역 환불 ID
