@@ -14,6 +14,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Service
 @Transactional
@@ -62,7 +65,66 @@ public class MemberPointServiceImpl implements MemberPointService {
     }
 
     @Override
-    public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUse) {
-        return null;
+    public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUseRequest) {
+        // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
+        int memberPointTotal = memberPointDetailRepositoryCustom.getMemberPointTotal(memberPointUseRequest.getMemberId());
+
+        // 사용하려는 적립금이 총액보다 크다면 예외를 발생시킵니다.
+        if (memberPointTotal - memberPointUseRequest.getAmount() < 0) {
+            throw new RuntimeException("적립금이 부족합니다.");
+        }
+
+        // 회원 적립금 사용 이벤트를 생성합니다.
+        MemberPointEvent useEvent = MemberPointEvent.useMemberPoint(memberPointUseRequest);
+        useEvent = memberPointEventRepository.save(useEvent);
+
+        // 회원 적립금 상세 내역을 생성합니다.
+        List<MemberPointDetail> memberPointDetails = createMemberPointDetails(memberPointUseRequest, useEvent);
+        return useEvent;
+    }
+
+    private List<MemberPointDetail> createMemberPointDetails(MemberPointUseRequest memberPointUseRequest, MemberPointEvent useEvent) {
+        // 적립금 상세 조회를 위해 사용할 검색 조건입니다.
+        MemberPointDetailSearch search = new MemberPointDetailSearch();
+        search.setMemberId(memberPointUseRequest.getMemberId());
+
+        // 사용하려는 적립금의 잔액입니다.
+        int useAmountRemain = memberPointUseRequest.getAmount();
+
+        // 생성된 적립금 상세 내역을 담을 리스트입니다.
+        List<MemberPointDetail> memberPointDetails = new ArrayList<>();
+
+        // 잔액이 0이 될 때까지 반복합니다.
+        while (useAmountRemain > 0) {
+            // 현재 페이지의 적립금 상세 내역을 조회합니다.
+            Page<MemberPointDetailRemain> memberPointDetailAvailable = memberPointDetailRepositoryCustom.getMemberPointDetailAvailable(search);
+
+            // 현재 페이지의 적립금 상세 내역이 없다면 예외를 발생시킵니다.
+            if (memberPointDetailAvailable.getTotalElements() == 0) {
+                throw new RuntimeException("적립금이 부족합니다.");
+            }
+
+            // 현재 페이지의 적립금 상세 내역을 순회하며 사용하려는 적립금의 잔액을 차감합니다.
+            for (MemberPointDetailRemain memberPointDetailRemain : memberPointDetailAvailable.getContent()) {
+                // 상세 내역의 적립금이 사용 잔액보다 크다면 사용 잔액을 0으로 만들고 반복문을 종료합니다.
+                if (memberPointDetailRemain.getRemain() - useAmountRemain >= 0) {
+                    MemberPointDetail last = MemberPointDetail.useMemberPointDetail(useEvent, memberPointDetailRemain, useAmountRemain);
+                    memberPointDetails.add(last);
+                    useAmountRemain = 0;
+                    break;
+                }
+                // 상세 내역의 적립금보다 사용 잔액이 크다면, 사용 잔액을 상세 내역의 적립금만큼 차감합니다.
+                else {
+                    MemberPointDetail current = MemberPointDetail.useMemberPointDetail(useEvent, memberPointDetailRemain, memberPointDetailRemain.getRemain());
+                    memberPointDetails.add(current);
+                    useAmountRemain -= memberPointDetailRemain.getRemain();
+                }
+
+            }
+
+            search.setPage(search.getPage() + 1);
+        }
+
+        return memberPointDetails;
     }
 }

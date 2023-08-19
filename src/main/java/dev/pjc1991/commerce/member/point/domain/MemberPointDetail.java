@@ -1,5 +1,6 @@
 package dev.pjc1991.commerce.member.point.domain;
 
+import dev.pjc1991.commerce.member.point.dto.MemberPointDetailRemain;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -94,6 +95,27 @@ public class MemberPointDetail {
         earnEvent.getMemberPointDetails().add(memberPointDetail);
 
         return memberPointDetail;
+
+    }
+
+    public static MemberPointDetail useMemberPointDetail(MemberPointEvent useEvent, MemberPointDetailRemain remain, int amount) {
+        if (useEvent == null) {
+            throw new IllegalArgumentException("회원 적립금 사용 이벤트가 null 입니다.");
+        }
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("사용 금액은 0 이하일 수 없습니다.");
+        }
+
+        MemberPointDetail memberPointDetail = new MemberPointDetail();
+        memberPointDetail.memberPointEvent = useEvent;
+        memberPointDetail.amount = -amount;
+        memberPointDetail.createdAt = LocalDateTime.now();
+        memberPointDetail.expireAt = remain.getExpireAt()   ;
+        useEvent.getMemberPointDetails().add(memberPointDetail);
+
+        return memberPointDetail;
+
 
     }
 
