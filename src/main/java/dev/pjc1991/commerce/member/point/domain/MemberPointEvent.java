@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -44,7 +45,7 @@ public class MemberPointEvent {
      * 회원 적립금 적립/사용 내역
      */
     @OneToMany(mappedBy = "memberPointEvent", cascade = CascadeType.ALL)
-    private Set<MemberPointDetail> memberPointDetails;
+    private Set<MemberPointDetail> memberPointDetails = new HashSet<>();
 
     /**
      * 회원 적립금 만료 시점
