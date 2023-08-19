@@ -10,11 +10,11 @@ import dev.pjc1991.commerce.member.point.repository.MemberPointDetailRepositoryC
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepositoryCustom;
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepository;
 import dev.pjc1991.commerce.member.point.service.MemberPointService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -30,11 +30,13 @@ public class MemberPointServiceImpl implements MemberPointService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public int getMemberPointTotal(int memberId) {
         return memberPointDetailRepositoryCustom.getMemberPointTotal(memberId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search) {
         return memberPointEventRepositoryCustom.getMemberPointEvents(search);
     }
