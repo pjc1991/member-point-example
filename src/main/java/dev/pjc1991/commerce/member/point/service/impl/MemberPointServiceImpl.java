@@ -36,7 +36,7 @@ public class MemberPointServiceImpl implements MemberPointService {
 
     @Override
     public Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search) {
-        return null;
+        return memberPointEventRepositoryCustom.getMemberPointEvents(search);
     }
 
     /**
