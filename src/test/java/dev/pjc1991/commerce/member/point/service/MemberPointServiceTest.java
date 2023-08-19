@@ -162,8 +162,11 @@ class MemberPointServiceTest {
      * 테스트용 적립금 생성 요청 DTO를 생성합니다.
      *
      * @param amount
+     * 적립할 회원 적립금 금액
      * @param memberId
+     * 적립할 회원 ID
      * @return
+     * 적립금 생성 요청 DTO
      */
     private static MemberPointUseRequest getTestMemberPointUseRequest(int memberId, int amount) {
         MemberPointUseRequest memberPointUseRequest = new MemberPointUseRequest();
@@ -176,8 +179,11 @@ class MemberPointServiceTest {
      * 테스트용 적립금 사용 요청 DTO를 생성합니다.
      *
      * @param amount
+     * 사용할 회원 적립금 금액
      * @param memberId
+     * 사용할 회원 ID
      * @return
+     * 적립금 사용 요청 DTO
      */
     private static MemberPointCreateRequest getTestMemberPointCreateRequest(int memberId, int amount) {
         MemberPointCreateRequest memberPointCreateRequest = new MemberPointCreateRequest();
@@ -190,9 +196,13 @@ class MemberPointServiceTest {
      * 테스트용 적립금 적립/사용 내역 검색 DTO를 생성합니다.
      *
      * @param memberId
+     * 적립/사용 내역을 조회할 회원 ID
      * @param page
+     * 패아자 번호
      * @param size
+     * 페이지 크기
      * @return
+     * 적립/사용 내역 검색 DTO
      */
     private static MemberPointEventSearch getMemberPointEventSearch(int memberId, int page, int size) {
         MemberPointEventSearch search = new MemberPointEventSearch();
