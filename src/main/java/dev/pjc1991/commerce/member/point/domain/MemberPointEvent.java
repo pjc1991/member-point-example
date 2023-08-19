@@ -75,6 +75,9 @@ public class MemberPointEvent {
      * 회원 적립금 적립 이벤트
      */
     public static MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate) {
+        if (memberPointCreate.getAmount() < 0) {
+            throw new RuntimeException("적립금 적립은 음수가 될 수 없습니다.");
+        }
         MemberPointEvent memberPointEvent = new MemberPointEvent();
         memberPointEvent.memberId = memberPointCreate.getMemberId();
         memberPointEvent.amount = memberPointCreate.getAmount();
