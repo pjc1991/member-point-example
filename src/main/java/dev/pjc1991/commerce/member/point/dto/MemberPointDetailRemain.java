@@ -15,6 +15,22 @@ public class MemberPointDetailRemain {
     // 회원 적립금 사용 후 잔액
     private Integer remain;
 
+    // 회원 적립금 만료 시점
+    private LocalDateTime expireAt;
+
     // 회원 적립금 적립 시점
     private LocalDateTime createdAt;
+
+    public MemberPointDetailRemain(
+            Long MemberPointDetailGroupId,
+            Integer remain,
+            LocalDateTime expireAt,
+            LocalDateTime createdAt
+    ) {
+        this.MemberPointDetailGroupId = MemberPointDetailGroupId;
+        this.remain = remain;
+        this.expireAt = expireAt;
+        this.createdAt = createdAt;
+    }
+
 }

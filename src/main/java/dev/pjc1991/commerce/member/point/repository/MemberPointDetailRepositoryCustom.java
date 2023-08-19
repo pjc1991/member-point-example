@@ -85,6 +85,7 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
                 .select(Projections.constructor(MemberPointDetailRemain.class,
                         memberPointDetail.memberPointDetailGroupId,
                         memberPointDetail.amount.sum().as("remain"),
+                        memberPointDetail.expireAt.min().as("expireAt"),
                         memberPointDetail.createdAt.min().as(createdAt)
                 ));
 
