@@ -85,4 +85,12 @@ public class MemberPointDetail {
         return memberPointDetail;
 
     }
+
+    /**
+     * 회원 적립금 적립 발생 상세 내역에 그룹 ID와 환불 대상 ID를 설정합니다.
+     */
+    public void updateGroupIdSelf() {
+        // 총합을 계산할 때 이 상세내역 기준으로 계산할 수 있도록 자신의 ID를 그룹 ID로 설정합니다.
+        this.memberPointDetailGroupId = this.id;
+    }
 }

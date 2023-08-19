@@ -48,6 +48,10 @@ public class MemberPointServiceImpl implements MemberPointService {
 
         MemberPointDetail detail = MemberPointDetail.earnMemberPointDetail(event);
         memberPointDetailRepository.save(detail);
+
+        // 회원 적립금 상세 내역의 그룹 아이디를 업데이트합니다.
+        detail.updateGroupIdSelf();
+        memberPointDetailRepository.save(detail);
         return event;
     }
 
