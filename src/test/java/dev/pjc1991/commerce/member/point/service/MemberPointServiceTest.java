@@ -66,10 +66,7 @@ class MemberPointServiceTest {
 
         // 적립금 적립/사용 내역을 조회합니다.
         // 검색 파라미터를 담은 오브젝트를 생성합니다.
-        MemberPointEventSearch search = new MemberPointEventSearch();
-        search.setMemberId(TEST_MEMBER_ID);
-        search.setPage(0);
-        search.setSize(10);
+        MemberPointEventSearch search = getMemberPointEventSearch(TEST_MEMBER_ID, 0, 10);
 
         Page<MemberPointEvent> result = memberPointService.getMemberPointEvents(search);
 
@@ -162,7 +159,7 @@ class MemberPointServiceTest {
     }
 
     /**
-     * 테스트용 적립금 생성 요청 오브젝트를 생성합니다.
+     * 테스트용 적립금 생성 요청 DTO를 생성합니다.
      *
      * @param amount
      * @param memberId
@@ -176,7 +173,7 @@ class MemberPointServiceTest {
     }
 
     /**
-     * 테스트용 적립금 사용 요청 오브젝트를 생성합니다.
+     * 테스트용 적립금 사용 요청 DTO를 생성합니다.
      *
      * @param amount
      * @param memberId
