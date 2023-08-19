@@ -1,6 +1,7 @@
 package dev.pjc1991.commerce.member.point.domain;
 
 import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
+import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -83,6 +84,28 @@ public class MemberPointEvent {
         memberPointEvent.amount = memberPointCreate.getAmount();
         memberPointEvent.createdAt = LocalDateTime.now();
         memberPointEvent.expireAt = memberPointEvent.createdAt.plusMonths(MEMBER_POINT_EXPIRE_MONTH);
+        return memberPointEvent;
+    }
+
+    /**
+     * 회원 적립금 사용 이벤트를 생성합니다.
+     * @param memberPointUse
+     * 회원 적립금 사용 요청 오브젝트
+     * @return
+     * 회원 적립금 사용 이벤트
+     */
+    public static MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUse) {
+        if (memberPointUse.getAmount() < 0) {
+            throw new RuntimeException("적립금 사용은 음수가 될 수 없습니다.");
+        }
+        MemberPointEvent memberPointEvent = new MemberPointEvent();
+        memberPointEvent.memberId = memberPointUse.getMemberId();
+        memberPointEvent.amount = -memberPointUse.getAmount();
+        // 사용은 음수로 표현합니다.
+        memberPointEvent.createdAt = LocalDateTime.now();
+        memberPointEvent.expireAt = null;
+        // 사용은 만료 시점이 없습니다.
+
         return memberPointEvent;
     }
 }
