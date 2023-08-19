@@ -15,7 +15,7 @@ import java.util.Set;
  *
  */
 @Entity
-@Table(name = "MEMBER_POINT")
+@Table(name = "MEMBER_POINT_EVENT")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberPointEvent {
