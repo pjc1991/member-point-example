@@ -46,6 +46,8 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
          *     MEMBER_POINT_DETAIL MEMBER_POINT_DETAIL
          * INNER JOIN
          *     MEMBER_POINT_EVENT MEMBER_POINT_EVENT
+         * ON
+         *     MEMBER_POINT_DETAIL.MEMBER_POINT_EVENT_ID = MEMBER_POINT_EVENT.ID
          * WHERE
          *     MEMBER_POINT_EVENT.MEMBER_ID = ?
          */
