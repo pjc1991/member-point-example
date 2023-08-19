@@ -3,12 +3,9 @@ package dev.pjc1991.commerce.member.point.dto;
 import dev.pjc1991.commerce.dto.PageSearch;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.domain.Sort;
 
 @Getter
 @Setter
-public class MemberPointEventSearch extends PageSearch {
-
-    // 회원 아이디
+public class MemberPointDetailSearch extends PageSearch {
     private Integer memberId;
 }
