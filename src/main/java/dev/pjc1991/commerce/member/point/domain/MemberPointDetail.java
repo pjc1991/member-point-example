@@ -61,6 +61,16 @@ public class MemberPointDetail {
     private LocalDateTime createdAt;
 
     /**
+     * 만료 시점
+     * 회원 적립금 적립 이벤트의 만료 시점과 동일하지만,
+     * 사용 또는 환불로 인해 만료되는 경우에도 그룹 ID를 기준으로 만료 시점을 계산할 수 있도록
+     * 사용한 적립금의 적립 이벤트와 동일한 만료 시점을 저장합니다. (적립 시점의 만료 시점)
+     * 이것은 이미 만료된 적립금과 그 사용 내역을 검색에서 제외해 검색 속도를 늘리기 위함입니다. (쿼리 최적화)
+     */
+    @Column(name = "EXPIRE_AT", nullable = false)
+    private LocalDateTime expireAt;
+
+    /**
      * 회원 적립금 적립 발생에 대한 상세 내역을 생성합니다.
      * @param earnEvent
      * 회원 적립금 적립 이벤트
