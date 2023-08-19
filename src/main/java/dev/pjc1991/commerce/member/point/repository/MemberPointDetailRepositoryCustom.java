@@ -30,7 +30,7 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
         query.having(memberPointDetail.amount.sum().gt(0));
         query.groupBy(memberPointDetail.memberPointDetailUseId);
 
-        /**
+        /*
          * SELECT
          *     SUM(MEMBER_POINT_DETAIL.AMOUNT)
          * FROM
