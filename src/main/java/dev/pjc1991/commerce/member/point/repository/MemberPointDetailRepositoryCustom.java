@@ -37,7 +37,10 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
         JPQLQuery<Integer> query = from(memberPointDetail)
                 .select(memberPointDetail.amount.sum());
 
-        query.where(memberPointDetail.memberPointEvent.memberId.eq(memberId));
+        query.where(
+                memberPointDetail.memberPointEvent.memberId.eq(memberId)
+                , memberPointDetail.expireAt.after(LocalDateTime.now())
+        );
 
         /*
          * SELECT
@@ -87,7 +90,7 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
 
         query.where(
                 memberPointDetail.memberPointEvent.memberId.eq(search.getMemberId())
-                , memberPointDetail.memberPointEvent.expireAt.after(LocalDateTime.now())
+                , memberPointDetail.expireAt.after(LocalDateTime.now())
         );
 
         query.groupBy(memberPointDetail.memberPointDetailGroupId);
