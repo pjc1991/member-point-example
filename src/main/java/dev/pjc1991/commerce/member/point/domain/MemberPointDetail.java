@@ -90,6 +90,7 @@ public class MemberPointDetail {
         memberPointDetail.memberPointEvent = earnEvent;
         memberPointDetail.amount = earnEvent.getAmount();
         memberPointDetail.createdAt = earnEvent.getCreatedAt();
+        memberPointDetail.expireAt = earnEvent.getExpireAt();
         earnEvent.getMemberPointDetails().add(memberPointDetail);
 
         return memberPointDetail;
