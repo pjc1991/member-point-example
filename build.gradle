@@ -32,10 +32,10 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 
 	// QueryDSL
-	implementation 'com.querydsl:querydsl-jpa'
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
 
 	// QueryDSL JPAAnnotationProcessor
-	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jpa"
+	annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
 	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 }
