@@ -66,6 +66,13 @@ public class MemberPointEvent {
     public static final int MEMBER_POINT_EXPIRE_MONTH = 12;
 
 
+    /**
+     * 회원 적립금 적립 이벤트를 생성합니다.
+     * @param memberPointCreate
+     * 회원 적립금 적립 요청 오브젝트
+     * @return
+     * 회원 적립금 적립 이벤트
+     */
     public static MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate) {
         MemberPointEvent memberPointEvent = new MemberPointEvent();
         memberPointEvent.memberId = memberPointCreate.getMemberId();
