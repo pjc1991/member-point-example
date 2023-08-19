@@ -140,7 +140,7 @@ class MemberPointServiceTest {
         // when
 
         // 적립금 사용 요청 오브젝트를 생성한다.
-        MemberPointUseRequest memberPointUseRequest = getTestMemberPointUseRequest(testPointUseAmount, TEST_MEMBER_ID);
+        MemberPointUseRequest memberPointUseRequest = getTestMemberPointUseRequest(TEST_MEMBER_ID, testPointUseAmount);
 
         // 적립금을 사용한다.
         MemberPointEvent result = memberPointService.useMemberPoint(memberPointUseRequest);
