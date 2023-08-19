@@ -85,7 +85,7 @@ class MemberPointServiceTest {
         assertEquals(testCount, result.getTotalElements());
 
         // 정상적으로 페이징이 되었는지 확인합니다.
-        int expectedSize = Math.min(testCount, 10);
+        int expectedSize = Math.min(testCount, search.getSize());
         log.info("expected size: {}", expectedSize);
         log.info("result size: {}", result.getSize());
         assertEquals(expectedSize, result.getSize());
