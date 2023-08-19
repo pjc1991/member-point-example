@@ -57,11 +57,14 @@ class MemberPointServiceTest {
         // given
 
         // 랜덤한 갯수의 적립금을 적립합니다.
-        int testCount = Math.toIntExact(Math.round(Math.random() * 100));
+        int maxTestCount = 100;
+        int testCount = Math.toIntExact(Math.round(Math.random() * maxTestCount));
+        log.info("test count: {}", testCount);
 
         // 적립금 생성 요청 오브젝트를 생성합니다.
+        int maxTestPointAmount = 100000;
         for (int i = 0; i < testCount; i++) {
-            MemberPointCreateRequest memberPointCreateRequest = getTestMemberPointCreateRequest(TEST_MEMBER_ID, Math.toIntExact(Math.round(Math.random() * 100000)));
+            MemberPointCreateRequest memberPointCreateRequest = getTestMemberPointCreateRequest(TEST_MEMBER_ID, Math.toIntExact(Math.round(Math.random() * maxTestPointAmount)));
             memberPointService.earnMemberPoint(memberPointCreateRequest);
         }
 
@@ -69,17 +72,22 @@ class MemberPointServiceTest {
 
         // 적립금 적립/사용 내역을 조회합니다.
         // 검색 파라미터를 담은 오브젝트를 생성합니다.
-        MemberPointEventSearch search = getMemberPointEventSearch(TEST_MEMBER_ID, 0, 10);
-
+        int page = 0;
+        int size = 10;
+        MemberPointEventSearch search = getMemberPointEventSearch(TEST_MEMBER_ID, page, size);
         Page<MemberPointEvent> result = memberPointService.getMemberPointEvents(search);
 
         // then
 
         // 조회된 적립금 적립/사용 내역의 갯수가 예상한 값과 같은지 확인합니다.
+        log.info("expected count: {}", testCount);
+        log.info("result count: {}", result.getTotalElements());
         assertEquals(testCount, result.getTotalElements());
 
         // 정상적으로 페이징이 되었는지 확인합니다.
         int expectedSize = Math.min(testCount, 10);
+        log.info("expected size: {}", expectedSize);
+        log.info("result size: {}", result.getSize());
         assertEquals(expectedSize, result.getSize());
     }
 
@@ -129,7 +137,8 @@ class MemberPointServiceTest {
         int currentPoint = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
 
         // 랜덤한 금액을 적립한다.
-        int testPointEarnAmount = Math.toIntExact(Math.round(Math.random() * 100000));
+        int maxTestPointAmount = 100000;
+        int testPointEarnAmount = Math.toIntExact(Math.round(Math.random() * maxTestPointAmount));
 
         // 랜덤한 금액을 사용한다. 사용할 금액은 적립금 적립 금액보다 작거나 같다.
         int testPointUseAmount = -Math.toIntExact(Math.round(Math.random() * testPointEarnAmount));
