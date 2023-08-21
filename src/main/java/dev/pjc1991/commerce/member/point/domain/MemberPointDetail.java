@@ -167,8 +167,7 @@ public class MemberPointDetail {
     public void updateGroupIdSelf() {
         // 총합을 계산할 때 이 상세내역 기준으로 계산할 수 있도록 자신의 ID를 그룹 ID로 설정합니다.
         this.memberPointDetailGroupId = this.id;
-        // 환불 대상이 되는 상세 내역의 ID를 환불 대상 ID로 설정합니다.
-        this.memberPointDetailRefundId = this.id;
+        // 적립은 환불의 대상이 되지 않으므로 환불 대상 ID는 null로 설정합니다.
     }
 
     /**
