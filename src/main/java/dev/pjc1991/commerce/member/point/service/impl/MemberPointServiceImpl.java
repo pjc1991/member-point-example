@@ -129,7 +129,6 @@ public class MemberPointServiceImpl implements MemberPointService {
     public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUseRequest) {
         // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
         int memberPointTotal = memberPointDetailRepositoryCustom.getMemberPointTotal(memberPointUseRequest.getMemberId());
-
         // 사용하려는 적립금이 총액보다 크다면 예외를 발생시킵니다.
         if (memberPointTotal - memberPointUseRequest.getAmount() < 0) {
             throw new RuntimeException("적립금이 부족합니다.");
@@ -141,6 +140,12 @@ public class MemberPointServiceImpl implements MemberPointService {
 
         // 회원 적립금 상세 내역을 생성합니다.
         List<MemberPointDetail> memberPointDetails = createMemberPointDetails(memberPointUseRequest, useEvent);
+
+        // 회원 적립금 상세 내역을 저장합니다.
+        memberPointDetailRepository.saveAll(memberPointDetails);
+        // 회원 적립금 상세 내역의 그룹 아이디를 업데이트합니다.
+        memberPointDetails.forEach(MemberPointDetail::updateRefundGroupIdSelf);
+        memberPointDetailRepository.saveAll(memberPointDetails);
         return useEvent;
     }
 
@@ -171,7 +176,6 @@ public class MemberPointServiceImpl implements MemberPointService {
         while (useAmountRemain > 0) {
             useAmountRemain = clearMemberPointUse(useEvent, search, useAmountRemain, memberPointDetails);
         }
-
         return memberPointDetails;
     }
 
@@ -190,7 +194,6 @@ public class MemberPointServiceImpl implements MemberPointService {
     private int clearMemberPointUse(MemberPointEvent useEvent, MemberPointDetailSearch search, int useAmountRemain, List<MemberPointDetail> memberPointDetails) {
         // 현재 페이지의 적립금 상세 내역을 조회합니다.
         Page<MemberPointDetailRemain> memberPointDetailAvailable = memberPointDetailRepositoryCustom.getMemberPointDetailAvailable(search);
-
         // 현재 페이지의 적립금 상세 내역이 없다면 예외를 발생시킵니다.
         if (memberPointDetailAvailable.getTotalElements() == 0) {
             throw new RuntimeException("적립금이 부족합니다.");
@@ -202,7 +205,6 @@ public class MemberPointServiceImpl implements MemberPointService {
             int useAmount = Math.min(useAmountRemain, memberPointDetailRemain.getRemain());
             MemberPointDetail current = MemberPointDetail.useMemberPointDetail(useEvent, memberPointDetailRemain, useAmount);
             memberPointDetails.add(current);
-            memberPointDetailRepository.save(current);
             useAmountRemain -= useAmount;
 
             // 잔액이 0이 되면 반복을 종료합니다.
