@@ -206,14 +206,14 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     private int clearMemberPointUse(MemberPointEvent useEvent, MemberPointDetailSearch search, int useAmountRemain, List<MemberPointDetail> memberPointDetails) {
         // 현재 페이지의 적립금 상세 내역을 조회합니다.
-        Page<MemberPointDetailRemain> memberPointDetailAvailable = memberPointDetailRepositoryCustom.getMemberPointDetailAvailable(search);
+        List<MemberPointDetailRemain> memberPointDetailAvailable = memberPointDetailRepositoryCustom.getMemberPointDetailAvailable(search);
         // 현재 페이지의 적립금 상세 내역이 없다면 예외를 발생시킵니다.
-        if (memberPointDetailAvailable.getTotalElements() == 0) {
+        if (memberPointDetailAvailable.isEmpty()) {
             throw new RuntimeException("적립금이 부족합니다.");
         }
 
         // 현재 페이지의 적립금 상세 내역을 순회하며 사용하려는 적립금의 잔액을 차감합니다.
-        for (MemberPointDetailRemain memberPointDetailRemain : memberPointDetailAvailable.getContent()) {
+        for (MemberPointDetailRemain memberPointDetailRemain : memberPointDetailAvailable) {
             // 사용 금액과 적립금 상세 내역 중 작은 값으로 생성합니다.
             int useAmount = Math.min(useAmountRemain, memberPointDetailRemain.getRemain());
             MemberPointDetail current = MemberPointDetail.useMemberPointDetail(useEvent, memberPointDetailRemain, useAmount);

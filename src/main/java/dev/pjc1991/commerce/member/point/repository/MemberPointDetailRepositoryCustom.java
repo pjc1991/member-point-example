@@ -8,9 +8,6 @@ import dev.pjc1991.commerce.member.point.domain.MemberPointDetail;
 import dev.pjc1991.commerce.member.point.domain.QMemberPointDetail;
 import dev.pjc1991.commerce.member.point.dto.MemberPointDetailRemain;
 import dev.pjc1991.commerce.member.point.dto.MemberPointDetailSearch;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 
@@ -71,7 +68,7 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
      * @return
      * 회원 적립금 상세 내역을 담은 페이지 오브젝트입니다.
      */
-    public Page<MemberPointDetailRemain> getMemberPointDetailAvailable(MemberPointDetailSearch search) {
+    public List<MemberPointDetailRemain> getMemberPointDetailAvailable(MemberPointDetailSearch search) {
         // 적립금 상세 내역에서 회원 아이디로 조회합니다.
         // 회원 아이디가 없으면 예외를 발생시킵니다.
         if (search.getMemberId() == null) {
@@ -80,25 +77,6 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
 
         QMemberPointDetail memberPointDetail = QMemberPointDetail.memberPointDetail;
         DateTimePath<LocalDateTime> createdAt = Expressions.dateTimePath(LocalDateTime.class, "createdAt");
-
-        JPQLQuery<MemberPointDetailRemain> query = from(memberPointDetail)
-                .select(Projections.constructor(MemberPointDetailRemain.class,
-                        memberPointDetail.memberPointDetailGroupId,
-                        memberPointDetail.amount.sum().as("remain"),
-                        memberPointDetail.expireAt.min().as("expireAt"),
-                        memberPointDetail.createdAt.min().as(createdAt)
-                ));
-
-        query.where(
-                memberPointDetail.memberPointEvent.memberId.eq(search.getMemberId())
-                , memberPointDetail.expireAt.after(LocalDateTime.now())
-        );
-
-        query.groupBy(memberPointDetail.memberPointDetailGroupId);
-        query.having(memberPointDetail.amount.sum().gt(0));
-        query.orderBy(createdAt.asc());
-        query.limit(search.getSize());
-        query.offset(search.getOffset());
 
         /*
          * SELECT
@@ -122,9 +100,31 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
          * LIMIT ?, ?
          */
 
-        List<MemberPointDetailRemain> result = query.fetch();
-        long totalCount = query.fetchCount();
+        JPQLQuery<MemberPointDetailRemain> query = from(memberPointDetail)
+                .select(Projections.constructor(MemberPointDetailRemain.class,
+                        memberPointDetail.memberPointDetailGroupId,
+                        memberPointDetail.amount.sum().as("remain"),
+                        memberPointDetail.expireAt.min().as("expireAt"),
+                        memberPointDetail.createdAt.min().as(createdAt)
+                ));
 
-        return new PageImpl<MemberPointDetailRemain>(result, PageRequest.of(search.getPage(), search.getSize()), totalCount);
+        query.innerJoin(memberPointDetail.memberPointEvent)
+                .on(memberPointDetail.memberPointEvent.id.eq(memberPointDetail.memberPointEvent.id));
+        query.where(
+                memberPointDetail.memberPointEvent.memberId.eq(search.getMemberId())
+                , memberPointDetail.expireAt.after(LocalDateTime.now())
+        );
+
+        query.groupBy(memberPointDetail.memberPointDetailGroupId);
+        query.having(memberPointDetail.amount.sum().gt(0));
+        query.orderBy(createdAt.asc());
+
+        if(search.isPaging()){
+            query.limit(search.getSize());
+            query.offset(search.getOffset());
+        }
+
+        return query.fetch();
     }
+
 }
