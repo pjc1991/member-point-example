@@ -45,7 +45,7 @@ public class MemberPointController {
      */
     @GetMapping("/member/{memberId}/point")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> getMemberPointEvents(@PathVariable int memberId, MemberPointEventSearch search) {
+    public ResponseEntity<?> getMemberPointEvents(@PathVariable int memberId, @RequestBody MemberPointEventSearch search) {
         search.setMemberId(memberId);
         Page<MemberPointEvent> memberPointEvents = memberPointService.getMemberPointEvents(search);
         return ResponseEntity.ok(memberPointEvents);
@@ -61,7 +61,7 @@ public class MemberPointController {
      */
     @PostMapping("/member/{memberId}/point/earn")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> earnMemberPoint(@PathVariable int memberId, MemberPointCreateRequest memberPointCreate) {
+    public ResponseEntity<?> earnMemberPoint(@PathVariable int memberId, @RequestBody MemberPointCreateRequest memberPointCreate) {
         memberPointCreate.setMemberId(memberId);
         MemberPointEvent memberPointEvent = memberPointService.earnMemberPoint(memberPointCreate);
         return ResponseEntity.ok(memberPointEvent);
@@ -78,7 +78,7 @@ public class MemberPointController {
      */
     @PostMapping("/member/{memberId}/point/use")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> useMemberPoint(@PathVariable int memberId, MemberPointUseRequest memberPointUseRequest) {
+    public ResponseEntity<?> useMemberPoint(@PathVariable int memberId, @RequestBody MemberPointUseRequest memberPointUseRequest) {
         memberPointUseRequest.setMemberId(memberId);
         MemberPointEvent memberPointEvent = memberPointService.useMemberPoint(memberPointUseRequest);
         return ResponseEntity.ok(memberPointEvent);
