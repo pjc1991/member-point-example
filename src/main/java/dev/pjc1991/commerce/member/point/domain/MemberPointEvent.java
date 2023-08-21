@@ -13,10 +13,16 @@ import java.util.Set;
 
 /**
  * 회원 적립금 이벤트 도메인
- *
  */
 @Entity
-@Table(name = "MEMBER_POINT_EVENT")
+@Table(
+        name = "MEMBER_POINT_EVENT"
+        , indexes = {
+            @Index(name = "IDX_MEMBER_POINT_EVENT_MEMBER_ID", columnList = "MEMBER_ID"),
+            @Index(name = "IDX_MEMBER_POINT_EVENT_CREATED_AT", columnList = "CREATED_AT"),
+            @Index(name = "IDX_MEMBER_POINT_EVENT_EXPIRE_AT", columnList = "EXPIRE_AT")
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberPointEvent {
@@ -70,10 +76,9 @@ public class MemberPointEvent {
 
     /**
      * 회원 적립금 적립 이벤트를 생성합니다.
-     * @param memberPointCreate
-     * 회원 적립금 적립 요청 오브젝트
-     * @return
-     * 회원 적립금 적립 이벤트
+     *
+     * @param memberPointCreate 회원 적립금 적립 요청 오브젝트
+     * @return 회원 적립금 적립 이벤트
      */
     public static MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate) {
         if (memberPointCreate.getAmount() < 0) {
@@ -94,10 +99,9 @@ public class MemberPointEvent {
 
     /**
      * 회원 적립금 사용 이벤트를 생성합니다.
-     * @param memberPointUse
-     * 회원 적립금 사용 요청 오브젝트
-     * @return
-     * 회원 적립금 사용 이벤트
+     *
+     * @param memberPointUse 회원 적립금 사용 요청 오브젝트
+     * @return 회원 적립금 사용 이벤트
      */
     public static MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUse) {
         if (memberPointUse.getAmount() < 0) {
