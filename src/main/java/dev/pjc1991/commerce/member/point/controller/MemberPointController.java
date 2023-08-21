@@ -25,8 +25,7 @@ public class MemberPointController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public MemberPointTotalResponse getMemberPointTotal(@PathVariable int memberId) {
-        MemberPointTotalResponse response = memberPointService.getMemberPointTotalResponse(memberId);
-        return response;
+        return memberPointService.getMemberPointTotalResponse(memberId);
     }
 
     /**
