@@ -53,14 +53,25 @@ class MemberPointServiceTest {
         // 랜덤한 금액을 적립합니다.
         int testPointAmount = Math.toIntExact(Math.round(Math.random() * 100000));
 
+        // 랜덤한 금액을 사용합니다.
+        int testPointUseAmount = Math.toIntExact(Math.round(Math.random() * testPointAmount));
+
         // 예상 금액을 계산합니다.
-        int expectedPoint = currentPoint + testPointAmount;
+        int expectedPoint = currentPoint + testPointAmount - testPointUseAmount;
 
         // 적립금 생성 요청 오브젝트를 생성합니다.
         MemberPointCreateRequest memberPointCreateRequest = getTestMemberPointCreateRequest(TEST_MEMBER_ID, testPointAmount);
 
         // 적립금을 추가합니다.
+        stopWatch.start("earnMemberPoint");
         memberPointService.earnMemberPoint(memberPointCreateRequest);
+        stopWatch.stop();
+
+
+        // 적립금을 사용합니다.
+        stopWatch.start("useMemberPoint");
+        memberPointService.useMemberPoint(getTestMemberPointUseRequest(TEST_MEMBER_ID, testPointUseAmount));
+        stopWatch.stop();
 
         // when
 
@@ -71,6 +82,8 @@ class MemberPointServiceTest {
 
         // then
 
+        // stopWatch.prettyPrint()를 통해 측정된 시간을 출력합니다.
+        System.out.println(stopWatch.prettyPrint());
 
         // 적립금 합계가 예상한 값과 같은지 확인합니다.
         log.info("expected point: {}", testPointAmount);
