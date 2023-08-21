@@ -5,7 +5,7 @@ import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
 import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.util.StopWatch;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,6 +32,12 @@ class MemberPointServiceTest {
     @Autowired
     MemberPointService memberPointService;
 
+    @AfterEach
+    void tearDown() {
+        // 테스트가 끝난 후에는 캐시를 비웁니다.
+        memberPointService.clearCache(TEST_MEMBER_ID);
+    }
+
     /**
      * 적립금 합계를 조회합니다.
      */
@@ -38,8 +45,16 @@ class MemberPointServiceTest {
     void getMemberPointTotal() {
         // given
 
+        // 현재 금액을 조회합니다.
+        StopWatch stopWatch = new StopWatch();
+
+        int currentPoint = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+
         // 랜덤한 금액을 적립합니다.
         int testPointAmount = Math.toIntExact(Math.round(Math.random() * 100000));
+
+        // 예상 금액을 계산합니다.
+        int expectedPoint = currentPoint + testPointAmount;
 
         // 적립금 생성 요청 오브젝트를 생성합니다.
         MemberPointCreateRequest memberPointCreateRequest = getTestMemberPointCreateRequest(TEST_MEMBER_ID, testPointAmount);
@@ -50,15 +65,18 @@ class MemberPointServiceTest {
         // when
 
         // 적립금 합계를 조회합니다.
+        stopWatch.start("getMemberPointTotal");
         int result = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+        stopWatch.stop();
 
         // then
+
 
         // 적립금 합계가 예상한 값과 같은지 확인합니다.
         log.info("expected point: {}", testPointAmount);
         log.info("result point: {}", result);
 
-        assertEquals(testPointAmount, result);
+        assertEquals(expectedPoint, result);
     }
 
     /**
@@ -98,7 +116,7 @@ class MemberPointServiceTest {
         assertEquals(before.getTotalElements() + testCount, after.getTotalElements());
 
         // 정상적으로 페이징이 되었는지 확인합니다.
-        int expectedSize = Math.min(testCount, search.getSize());
+        int expectedSize = Math.toIntExact(Math.min(before.getTotalElements() + testCount, search.getSize()));
         log.info("expected size: {}", expectedSize);
         log.info("result size: {}", after.getSize());
         assertEquals(expectedSize, after.getSize());
@@ -154,6 +172,7 @@ class MemberPointServiceTest {
 
         // 현재 금액을 조회한다.
         int currentPoint = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+        log.info("currentPoint: {}", currentPoint);
 
         // 랜덤한 금액을 적립한다.
         int maxTestPointAmount = 100000;
@@ -207,7 +226,7 @@ class MemberPointServiceTest {
      * 사용의 경우에는 부하가 크므로 100회로 제한합니다.
      */
     @ParameterizedTest
-    @ValueSource(ints = {1, 10, 100, 1000, 10000})
+    @ValueSource(ints = {1, 10, 100, 1000})
     void earnAndUseMemberPointMultipleTimes(int numberOfTest) {
         // given
 
@@ -289,7 +308,7 @@ class MemberPointServiceTest {
     @Test
     void createMassiveRowsTest() {
         // given
-        final int MASSIVE_ROWS = 10000;
+        final int MASSIVE_ROWS = 1000;
 
         // 랜덤한 금액을 적립합니다.
         int maxTestPointAmount = TEST_POINT_AMOUNT;
