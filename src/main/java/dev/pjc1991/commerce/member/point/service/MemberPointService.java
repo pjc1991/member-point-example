@@ -11,29 +11,36 @@ public interface MemberPointService {
 
     /**
      * 회원 적립금 합계 조회
-     * @param memberId
+     * @param
+     * memberId 회원 아이디
      * @return
+     * 회원 적립금 합계 (int)
      */
     int getMemberPointTotal(int memberId);
 
     /**
      * 회원 적립금 적립/사용 내역 조회
-     * @param search
+     * @param
+     * search (MemberPointEventSearch) page : 페이지 번호, size : 페이지 사이즈, memberId : 회원 아이디
      * @return
+     * 회원 적립금 적립/사용 내역 (Page<MemberPointEvent>)
      */
     Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search);
 
     /**
      * 회원 적립금 적립
-     * @param memberPointCreate
+     * @param
+     * memberPointCreate (MemberPointCreateRequest) memberId : 회원 아이디, amount : 적립금
      * @return
      */
     MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate);
 
     /**
      * 회원 적립금 사용
-     * @param memberPointUse
+     * @param
+     * memberPointUse (MemberPointUseRequest) memberId : 회원 아이디, amount : 적립금
      * @return
+     * 회원 적립금 사용 (MemberPointEvent)
      */
     MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUse);
 
