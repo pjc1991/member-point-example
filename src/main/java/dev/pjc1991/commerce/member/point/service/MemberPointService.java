@@ -77,4 +77,9 @@ public interface MemberPointService {
      */
     void clearCache(int memberId);
 
+    /**
+     * 회원 적립금 만료 처리
+     */
+    void expireMemberPoint();
+
 }

@@ -120,11 +120,44 @@ public class MemberPointDetail {
         memberPointDetail.memberPointDetailGroupId = remain.getMemberPointDetailGroupId();
         memberPointDetail.amount = -useAmount;
         memberPointDetail.createdAt = LocalDateTime.now();
-        memberPointDetail.expireAt = remain.getExpireAt();
+        memberPointDetail.expireAt = LocalDateTime.now();
         useEvent.getMemberPointDetails().add(memberPointDetail);
 
         return memberPointDetail;
 
+
+    }
+
+    /**
+     * 회원 적립금 만료 발생에 대한 상세 내역을 생성합니다.
+     * @param remain 만료될 회원 적립금 상세 내역
+     * @param expireEvent 회원 적립금 만료 이벤트
+     * @return 회원 적립금 만료 상세 내역
+     */
+    public static MemberPointDetail expireMemberPointDetail(MemberPointDetailRemain remain, MemberPointEvent expireEvent) {
+        if (remain == null) {
+            throw new IllegalArgumentException("회원 적립금 상세 내역이 null 입니다.");
+        }
+
+        if (expireEvent == null) {
+            throw new IllegalArgumentException("회원 적립금 만료 이벤트가 null 입니다.");
+        }
+
+        if (remain.getExpireAt().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("회원 적립금 상세 내역의 만료 시점이 현재 시점보다 미래입니다.");
+        }
+
+        MemberPointDetail memberPointDetailExpire = new MemberPointDetail();
+
+        memberPointDetailExpire.memberPointDetailGroupId = remain.getMemberPointDetailGroupId();
+        memberPointDetailExpire.amount = -remain.getRemain();
+        memberPointDetailExpire.createdAt = LocalDateTime.now();
+        memberPointDetailExpire.expireAt = LocalDateTime.now();
+
+        memberPointDetailExpire.memberPointEvent = expireEvent;
+        expireEvent.getMemberPointDetails().add(memberPointDetailExpire);
+
+        return memberPointDetailExpire;
 
     }
 

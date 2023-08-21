@@ -196,6 +196,20 @@ public class MemberPointServiceImpl implements MemberPointService {
         return;
     }
 
+    @Override
+    public void expireMemberPoint() {
+        // 적립금 만료 시점을 지난 적립금 상세 내역을 조회합니다.
+        List<MemberPointDetailRemain> memberPointDetails = memberPointDetailRepositoryCustom.getMemberPointDetailExpired();
+        // 적립금 상세 내역을 순회하며 적립금 만료 이벤트를 생성합니다.
+        for (MemberPointDetailRemain memberPointDetailRemain : memberPointDetails) {
+            MemberPointEvent expireEvent = MemberPointEvent.expireMemberPoint(memberPointDetailRemain);
+            memberPointEventRepository.save(expireEvent);
+
+            MemberPointDetail expireDetail = MemberPointDetail.expireMemberPointDetail(memberPointDetailRemain, expireEvent);
+            memberPointDetailRepository.save(expireDetail);
+        }
+    }
+
     private List<MemberPointDetail> createMemberPointDetails(MemberPointUseRequest memberPointUseRequest, MemberPointEvent useEvent) {
         // 적립금 상세 조회를 위해 사용할 검색 조건입니다.
         MemberPointDetailSearch search = new MemberPointDetailSearch();
