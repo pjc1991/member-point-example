@@ -8,8 +8,6 @@ public class PageSearch {
     private int page = 0;
     // 페이지 크기
     private int size = 10;
-    // 조회된 전체 데이터 수
-    private Integer total;
     // 조회 시작 위치
     private int offset = 0;
 
@@ -31,10 +29,6 @@ public class PageSearch {
     public void setSize(int size) {
         this.size = size;
         calculateOffset();
-    }
-
-    public void setTotal(int total) {
-        this.total = total;
     }
 
     /**
