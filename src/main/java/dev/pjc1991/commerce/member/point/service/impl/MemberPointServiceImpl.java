@@ -8,9 +8,7 @@ import dev.pjc1991.commerce.member.point.repository.MemberPointDetailRepositoryC
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepositoryCustom;
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepository;
 import dev.pjc1991.commerce.member.point.service.MemberPointService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -25,7 +23,6 @@ import java.util.List;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
 @Slf4j
 @CacheConfig(cacheNames = "memberPoint")
 public class MemberPointServiceImpl implements MemberPointService {
@@ -35,9 +32,22 @@ public class MemberPointServiceImpl implements MemberPointService {
     private final MemberPointDetailRepository memberPointDetailRepository;
     private final MemberPointDetailRepositoryCustom memberPointDetailRepositoryCustom;
 
-    @Autowired
+    private final MemberPointService self;
+
     @Lazy
-    private MemberPointService self;
+    public MemberPointServiceImpl(
+            MemberPointEventRepository memberPointEventRepository
+            , MemberPointEventRepositoryCustom memberPointEventRepositoryCustom
+            , MemberPointDetailRepository memberPointDetailRepository
+            , MemberPointDetailRepositoryCustom memberPointDetailRepositoryCustom
+            , MemberPointService self
+    ) {
+        this.memberPointEventRepository = memberPointEventRepository;
+        this.memberPointEventRepositoryCustom = memberPointEventRepositoryCustom;
+        this.memberPointDetailRepository = memberPointDetailRepository;
+        this.memberPointDetailRepositoryCustom = memberPointDetailRepositoryCustom;
+        this.self = self;
+    }
 
     /**
      * 회원 적립금 합계 조회
