@@ -1,6 +1,7 @@
 package dev.pjc1991.commerce.member.point.controller;
 
 import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
+import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
 import dev.pjc1991.commerce.member.point.dto.MemberPointTotalResponse;
 import dev.pjc1991.commerce.member.point.service.MemberPointService;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Controller
@@ -49,5 +51,21 @@ public class MemberPointController {
         search.setMemberId(memberId);
         Page<MemberPointEvent> memberPointEvents = memberPointService.getMemberPointEvents(search);
         return ResponseEntity.ok(memberPointEvents);
+    }
+
+    /**
+     * 회원 적립금 적립
+     * @param memberId
+     * 회원 아이디
+     * @param memberPointCreate
+     * 적립금 생성 요청 오브젝트
+     * amount: 적립금 금액
+     */
+    @PostMapping("/member/{memberId}/point/earn")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<?> earnMemberPoint(@PathVariable int memberId, MemberPointCreateRequest memberPointCreate) {
+        memberPointCreate.setMemberId(memberId);
+        MemberPointEvent memberPointEvent = memberPointService.earnMemberPoint(memberPointCreate);
+        return ResponseEntity.ok(memberPointEvent);
     }
 }
