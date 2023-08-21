@@ -203,9 +203,9 @@ class MemberPointServiceTest {
 
     /**
      * 다수의 적립금 적립 및 사용을 테스트합니다.
+     * 사용의 경우에는 부하가 크므로 100회로 제한합니다.
      */
     @ParameterizedTest
-    @Disabled("현 시점에서 성능 문제가 있으므로 빌드 시간을 줄이기 위해 테스트를 비활성화합니다.")
     @ValueSource(ints = {1, 10, 100, 1000, 10000})
     void earnAndUseMemberPointMultipleTimes(int numberOfTest) {
         // given
@@ -236,7 +236,9 @@ class MemberPointServiceTest {
         log.info("Member Point Use Start");
         stopWatch.start("Member Point Use");
         int useCount = 0;
-        for (int i = 0; i < numberOfTest; i++) {
+        int useTestLimit = 100;
+        int maxUseCount = Math.min(numberOfTest, useTestLimit);
+        for (int i = 0; i < maxUseCount; i++) {
 
             if (currentPoint == 0) {
                 break;
@@ -250,7 +252,7 @@ class MemberPointServiceTest {
             }
 
             MemberPointEvent event = memberPointService.useMemberPoint(getTestMemberPointUseRequest(TEST_MEMBER_ID, amountPointUse));
-            currentPoint += event.getAmount();
+            currentPoint -= amountPointUse;
             useCount++;
             log.info("currentPoint: {}, amountPointUse: {}, useCount: {}", currentPoint, amountPointUse, useCount);
         }
