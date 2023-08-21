@@ -285,6 +285,54 @@ class MemberPointServiceTest {
         assertEquals(currentPoint, memberPointTotal);
     }
 
+    @Test
+    void createMassiveRowsTest() {
+        // given
+        final int MASSIVE_ROWS = 10000;
+
+        // 랜덤한 금액을 적립합니다.
+        int maxTestPointAmount = TEST_POINT_AMOUNT;
+        int currentPoint = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+
+        // when
+
+        // 다수의 적립금 적립 및 사용의 성능을 테스트하기 위해 스톱워치를 시작합니다.
+        StopWatch stopWatch = new StopWatch();
+
+        log.info("numberOfTest: {}", MASSIVE_ROWS);
+        log.info("maxTestPointAmount: {}", maxTestPointAmount);
+
+        log.info("Member Point Earn Start");
+        stopWatch.start("Member Point Earn");
+        // 적립금을 추가합니다.
+        for (int i = 0; i < MASSIVE_ROWS; i++) {
+            int amountPointEarn = Math.toIntExact(Math.round(Math.random() * maxTestPointAmount));
+            MemberPointEvent event = memberPointService.earnMemberPoint(getTestMemberPointCreateRequest(TEST_MEMBER_ID, amountPointEarn));
+            currentPoint += event.getAmount();
+        }
+        stopWatch.stop();
+
+        // stopWatch.prettyPrint()를 통해 측정된 시간을 출력합니다.
+        System.out.println(stopWatch.prettyPrint());
+
+        // 각 작업당 1회에 사용된 시간을 확인합니다.
+        long totalEarn = stopWatch.getTaskInfo()[0].getTimeMillis();
+        long earnTime = totalEarn / MASSIVE_ROWS;
+
+        log.info("Member Point Earn Count : {}", MASSIVE_ROWS);
+        log.info("Member Point Earn Time taken per loop : {}", earnTime);
+        log.info("Member Point Earn Total Time : {}", totalEarn);
+
+
+        int memberPointTotal = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+
+        log.info("currentPoint: {}", currentPoint);
+        log.info("memberPointTotal: {}", memberPointTotal);
+
+        assertEquals(currentPoint, memberPointTotal);
+    }
+
+
 
 
 
