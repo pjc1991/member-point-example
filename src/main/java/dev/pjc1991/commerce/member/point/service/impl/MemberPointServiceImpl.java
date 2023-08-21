@@ -8,8 +8,11 @@ import dev.pjc1991.commerce.member.point.repository.MemberPointDetailRepositoryC
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepositoryCustom;
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepository;
 import dev.pjc1991.commerce.member.point.service.MemberPointService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +23,8 @@ import java.util.List;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
 @Slf4j
+@CacheConfig(cacheNames = "memberPoint")
 public class MemberPointServiceImpl implements MemberPointService {
 
     private final MemberPointEventRepository memberPointEventRepository;
@@ -29,6 +32,22 @@ public class MemberPointServiceImpl implements MemberPointService {
     private final MemberPointDetailRepository memberPointDetailRepository;
     private final MemberPointDetailRepositoryCustom memberPointDetailRepositoryCustom;
 
+    private final MemberPointService self;
+
+    @Lazy
+    public MemberPointServiceImpl(
+            MemberPointEventRepository memberPointEventRepository
+            , MemberPointEventRepositoryCustom memberPointEventRepositoryCustom
+            , MemberPointDetailRepository memberPointDetailRepository
+            , MemberPointDetailRepositoryCustom memberPointDetailRepositoryCustom
+            , MemberPointService self
+    ) {
+        this.memberPointEventRepository = memberPointEventRepository;
+        this.memberPointEventRepositoryCustom = memberPointEventRepositoryCustom;
+        this.memberPointDetailRepository = memberPointDetailRepository;
+        this.memberPointDetailRepositoryCustom = memberPointDetailRepositoryCustom;
+        this.self = self;
+    }
 
     /**
      * 회원 적립금 합계 조회
@@ -39,6 +58,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "memberPointTotal", key = "#memberId")
     public int getMemberPointTotal(int memberId) {
         return memberPointDetailRepositoryCustom.getMemberPointTotal(memberId);
     }
@@ -53,7 +73,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     @Override
     @Transactional(readOnly = true)
     public MemberPointTotalResponse getMemberPointTotalResponse(int memberId) {
-        return new MemberPointTotalResponse(memberId, getMemberPointTotal(memberId));
+        return new MemberPointTotalResponse(memberId, self.getMemberPointTotal(memberId));
     }
 
     /**
@@ -90,6 +110,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 적립 내역 (MemberPointEvent)
      */
     @Override
+    @CacheEvict(value = "memberPointTotal", key = "#memberPointCreate.memberId")
     public MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate) {
         // 회원 적립금 이벤트를 생성합니다.
         MemberPointEvent event = MemberPointEvent.earnMemberPoint(memberPointCreate);
@@ -113,6 +134,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 적립 DTO (MemberPointEventResponse)
      */
     @Override
+    @CacheEvict(value = "memberPointTotal", key = "#memberPointCreate.memberId")
     public MemberPointEventResponse earnMemberPointResponse(MemberPointCreateRequest memberPointCreate) {
         return new MemberPointEventResponse(earnMemberPoint(memberPointCreate));
     }
@@ -126,9 +148,10 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 사용 내역 (MemberPointEvent)
      */
     @Override
+    @CacheEvict(value = "memberPointTotal", key = "#memberPointUseRequest.getMemberId()")
     public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUseRequest) {
         // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
-        int memberPointTotal = memberPointDetailRepositoryCustom.getMemberPointTotal(memberPointUseRequest.getMemberId());
+        int memberPointTotal = self.getMemberPointTotal(memberPointUseRequest.getMemberId());
         // 사용하려는 적립금이 총액보다 크다면 예외를 발생시킵니다.
         if (memberPointTotal - memberPointUseRequest.getAmount() < 0) {
             throw new RuntimeException("적립금이 부족합니다.");
@@ -146,6 +169,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 회원 적립금 상세 내역의 그룹 아이디를 업데이트합니다.
         memberPointDetails.forEach(MemberPointDetail::updateRefundGroupIdSelf);
         memberPointDetailRepository.saveAll(memberPointDetails);
+
         return useEvent;
     }
 
@@ -157,13 +181,25 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 사용 내역 DTO (MemberPointEventResponse)
      */
     @Override
+    @CacheEvict(value = "memberPointTotal", key = "#memberPointUse.getMemberId()")
     public MemberPointEventResponse useMemberPointResponse(MemberPointUseRequest memberPointUse) {
         return new MemberPointEventResponse(useMemberPoint(memberPointUse));
+    }
+
+    /**
+     * 회원 적립금 합계의 캐시를 초기화합니다.
+     * @param memberId 회원 아이디
+     */
+    @Override
+    @CacheEvict(value = "memberPointTotal", key = "#memberId")
+    public void clearCache(int memberId) {
+        return;
     }
 
     private List<MemberPointDetail> createMemberPointDetails(MemberPointUseRequest memberPointUseRequest, MemberPointEvent useEvent) {
         // 적립금 상세 조회를 위해 사용할 검색 조건입니다.
         MemberPointDetailSearch search = new MemberPointDetailSearch();
+        search.setSize(100);
         search.setMemberId(memberPointUseRequest.getMemberId());
 
         // 사용하려는 적립금의 잔액입니다.
@@ -172,10 +208,22 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 생성된 적립금 상세 내역을 담을 리스트입니다.
         List<MemberPointDetail> memberPointDetails = new ArrayList<>();
 
+        long totalCount = memberPointDetailRepository.countByMemberPointEventMemberId(memberPointUseRequest.getMemberId());
+
         // 잔액이 0이 될 때까지 반복합니다.
         while (useAmountRemain > 0) {
             useAmountRemain = clearMemberPointUse(useEvent, search, useAmountRemain, memberPointDetails);
+
+            if (useAmountRemain == 0) {
+                break;
+            }
+
+            if (search.getOffset() > totalCount) {
+                throw new RuntimeException("비정상적으로 반복문이 진행되고 있습니다. ");
+            }
+
         }
+
         return memberPointDetails;
     }
 
@@ -185,7 +233,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      * 잔액이 0이 될 때까지 이 메소드를 반복합니다.
      *
      * @param useEvent           적립금 사용 이벤트
-     * @param search             적립금 상세 내역 조회를 위한 검색 조건 (매 순회바다 페이지 번호가 증가합니다.)
+     * @param search             적립금 상세 내역 조회를 위한 검색 조건
      * @param useAmountRemain    사용하려는 적립금의 잔액 (매 순회마다 차감됩니다.)
      * @param memberPointDetails 생성된 적립금 상세 내역을 담은 리스트
      * @return useAmountRemain
@@ -193,14 +241,14 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     private int clearMemberPointUse(MemberPointEvent useEvent, MemberPointDetailSearch search, int useAmountRemain, List<MemberPointDetail> memberPointDetails) {
         // 현재 페이지의 적립금 상세 내역을 조회합니다.
-        Page<MemberPointDetailRemain> memberPointDetailAvailable = memberPointDetailRepositoryCustom.getMemberPointDetailAvailable(search);
+        List<MemberPointDetailRemain> memberPointDetailAvailable = memberPointDetailRepositoryCustom.getMemberPointDetailAvailable(search);
         // 현재 페이지의 적립금 상세 내역이 없다면 예외를 발생시킵니다.
-        if (memberPointDetailAvailable.getTotalElements() == 0) {
+        if (memberPointDetailAvailable.isEmpty()) {
             throw new RuntimeException("적립금이 부족합니다.");
         }
 
         // 현재 페이지의 적립금 상세 내역을 순회하며 사용하려는 적립금의 잔액을 차감합니다.
-        for (MemberPointDetailRemain memberPointDetailRemain : memberPointDetailAvailable.getContent()) {
+        for (MemberPointDetailRemain memberPointDetailRemain : memberPointDetailAvailable) {
             // 사용 금액과 적립금 상세 내역 중 작은 값으로 생성합니다.
             int useAmount = Math.min(useAmountRemain, memberPointDetailRemain.getRemain());
             MemberPointDetail current = MemberPointDetail.useMemberPointDetail(useEvent, memberPointDetailRemain, useAmount);
@@ -210,8 +258,6 @@ public class MemberPointServiceImpl implements MemberPointService {
             // 잔액이 0이 되면 반복을 종료합니다.
             if (useAmountRemain == 0) break;
         }
-
-        search.setPage(search.getPage() + 1);
         return useAmountRemain;
     }
 }

@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MemberPointDetailRepository extends JpaRepository<MemberPointDetail, Long> {
+    long countByMemberPointEventMemberId(Integer memberId);
 }
