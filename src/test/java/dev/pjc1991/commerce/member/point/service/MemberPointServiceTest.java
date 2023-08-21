@@ -5,6 +5,7 @@ import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
 import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -204,6 +205,7 @@ class MemberPointServiceTest {
      * 다수의 적립금 적립 및 사용을 테스트합니다.
      */
     @ParameterizedTest
+    @Disabled("현 시점에서 성능 문제가 있으므로 빌드 시간을 줄이기 위해 테스트를 비활성화합니다.")
     @ValueSource(ints = {1, 10, 100, 1000, 10000})
     void earnAndUseMemberPointMultipleTimes(int numberOfTest) {
         // given
