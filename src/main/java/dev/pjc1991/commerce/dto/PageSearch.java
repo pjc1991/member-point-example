@@ -11,6 +11,8 @@ public class PageSearch {
     // 조회 시작 위치
     private int offset = 0;
 
+    private boolean paging = true;
+
     /**
      * 페이지 번호나 페이지 크기를 설정하면 조회 시작 위치를 계산합니다.
      * @param page
@@ -36,5 +38,9 @@ public class PageSearch {
      */
     private void calculateOffset() {
         this.offset = page * size;
+    }
+
+    public void setPaging(boolean paging) {
+        this.paging = paging;
     }
 }
