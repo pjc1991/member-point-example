@@ -71,5 +71,10 @@ public interface MemberPointService {
      */
     MemberPointEventResponse useMemberPointResponse(MemberPointUseRequest memberPointUse);
 
+    /**
+     * 회원 적립금 캐시 초기화
+     * @param memberId 회원 아이디
+     */
+    void clearCache(int memberId);
 
 }

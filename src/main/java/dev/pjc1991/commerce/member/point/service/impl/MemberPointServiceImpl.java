@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -35,6 +34,10 @@ public class MemberPointServiceImpl implements MemberPointService {
     private final MemberPointEventRepositoryCustom memberPointEventRepositoryCustom;
     private final MemberPointDetailRepository memberPointDetailRepository;
     private final MemberPointDetailRepositoryCustom memberPointDetailRepositoryCustom;
+
+    @Autowired
+    @Lazy
+    private MemberPointService self;
 
     /**
      * 회원 적립금 합계 조회
@@ -60,7 +63,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     @Override
     @Transactional(readOnly = true)
     public MemberPointTotalResponse getMemberPointTotalResponse(int memberId) {
-        return new MemberPointTotalResponse(memberId, getMemberPointTotal(memberId));
+        return new MemberPointTotalResponse(memberId, self.getMemberPointTotal(memberId));
     }
 
     /**
@@ -97,7 +100,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 적립 내역 (MemberPointEvent)
      */
     @Override
-    @CacheEvict(value = "memberPointTotal", key = "#memberPointCreate.getMemberId()")
+    @CacheEvict(value = "memberPointTotal", key = "#memberPointCreate.memberId")
     public MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate) {
         // 회원 적립금 이벤트를 생성합니다.
         MemberPointEvent event = MemberPointEvent.earnMemberPoint(memberPointCreate);
@@ -121,6 +124,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 적립 DTO (MemberPointEventResponse)
      */
     @Override
+    @CacheEvict(value = "memberPointTotal", key = "#memberPointCreate.memberId")
     public MemberPointEventResponse earnMemberPointResponse(MemberPointCreateRequest memberPointCreate) {
         return new MemberPointEventResponse(earnMemberPoint(memberPointCreate));
     }
@@ -137,7 +141,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     @CacheEvict(value = "memberPointTotal", key = "#memberPointUseRequest.getMemberId()")
     public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUseRequest) {
         // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
-        int memberPointTotal = getMemberPointTotal(memberPointUseRequest.getMemberId());
+        int memberPointTotal = self.getMemberPointTotal(memberPointUseRequest.getMemberId());
         // 사용하려는 적립금이 총액보다 크다면 예외를 발생시킵니다.
         if (memberPointTotal - memberPointUseRequest.getAmount() < 0) {
             throw new RuntimeException("적립금이 부족합니다.");
@@ -167,8 +171,19 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 사용 내역 DTO (MemberPointEventResponse)
      */
     @Override
+    @CacheEvict(value = "memberPointTotal", key = "#memberPointUse.getMemberId()")
     public MemberPointEventResponse useMemberPointResponse(MemberPointUseRequest memberPointUse) {
         return new MemberPointEventResponse(useMemberPoint(memberPointUse));
+    }
+
+    /**
+     * 회원 적립금 합계의 캐시를 초기화합니다.
+     * @param memberId 회원 아이디
+     */
+    @Override
+    @CacheEvict(value = "memberPointTotal", key = "#memberId")
+    public void clearCache(int memberId) {
+        return;
     }
 
     private List<MemberPointDetail> createMemberPointDetails(MemberPointUseRequest memberPointUseRequest, MemberPointEvent useEvent) {
