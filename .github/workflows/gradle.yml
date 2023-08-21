@@ -29,7 +29,7 @@ jobs:
         distribution: 'temurin'
 
     - name: Grand execute permision for gradlew
-      run: chomod +x gradlew
+      run: chmod +x gradlew
       
     - name: Test with Gradle
       run: ./gradlew --info test
