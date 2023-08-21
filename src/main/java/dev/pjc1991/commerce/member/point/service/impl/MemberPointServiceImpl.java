@@ -30,24 +30,52 @@ public class MemberPointServiceImpl implements MemberPointService {
     private final MemberPointDetailRepositoryCustom memberPointDetailRepositoryCustom;
 
 
+    /**
+     * 회원 적립금 합계 조회
+     * 적립금 합계 내역을 조회합니다.
+     *
+     * @param memberId 회원 아이디
+     * @return 회원 적립금 합계 (int)
+     */
     @Override
     @Transactional(readOnly = true)
     public int getMemberPointTotal(int memberId) {
         return memberPointDetailRepositoryCustom.getMemberPointTotal(memberId);
     }
 
+    /**
+     * 회원 적립금 합계 조회 (Response)
+     * 적립금 합계 내역을 조회해서, DTO 형태로 반환합니다.
+     *
+     * @param memberId 회원 아이디
+     * @return 회원 적립금 합계 (MemberPointTotalResponse)
+     */
     @Override
     @Transactional(readOnly = true)
     public MemberPointTotalResponse getMemberPointTotalResponse(int memberId) {
         return new MemberPointTotalResponse(memberId, getMemberPointTotal(memberId));
     }
 
+    /**
+     * 회원 적립금 적립/사용 내역 조회
+     * 적립금 적립/사용 내역을 조회합니다.
+     *
+     * @param search (MemberPointEventSearch) page : 페이지 번호, size : 페이지 사이즈, memberId : 회원 아이디
+     * @return 회원 적립금 적립/사용 내역 (Page<MemberPointEvent>)
+     */
     @Override
     @Transactional(readOnly = true)
     public Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search) {
         return memberPointEventRepositoryCustom.getMemberPointEvents(search);
     }
 
+    /**
+     * 회원 적립금 적립/사용 내역 조회 (Response)
+     * 적립금 적립/사용 내역을 조회해서, DTO 형태로 반환합니다.
+     *
+     * @param search (MemberPointEventSearch) page : 페이지 번호, size : 페이지 사이즈, memberId : 회원 아이디
+     * @return 회원 적립금 적립/사용 내역 DTO (Page<MemberPointEventResponse>)
+     */
     @Override
     @Transactional(readOnly = true)
     public Page<MemberPointEventResponse> getMemberPointEventResponses(MemberPointEventSearch search) {
@@ -55,10 +83,11 @@ public class MemberPointServiceImpl implements MemberPointService {
     }
 
     /**
-     * 회원에게 적립금을 적립합니다.
+     * 회원에게 적립금 적립
+     * 적립금을 적립할 때, 적립금 적립 이벤트와 적립금 적립 상세 내역을 나눠서 저장합니다.
      *
      * @param memberPointCreate 회원 적립금 생성에 필요한 값을 담고 있는 DTO
-     * @return 회원 적립금 이벤트
+     * @return 회원 적립금 적립 내역 (MemberPointEvent)
      */
     @Override
     public MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate) {
@@ -76,11 +105,26 @@ public class MemberPointServiceImpl implements MemberPointService {
         return event;
     }
 
+    /**
+     * 회원 적립금 적립 (Response)
+     * 적립금을 적립하고, 적립금 적립 이벤트를 DTO 형태로 반환합니다.
+     *
+     * @param memberPointCreate (MemberPointCreateRequest) memberId : 회원 아이디, amount : 적립금
+     * @return 회원 적립금 적립 DTO (MemberPointEventResponse)
+     */
     @Override
     public MemberPointEventResponse earnMemberPointResponse(MemberPointCreateRequest memberPointCreate) {
         return new MemberPointEventResponse(earnMemberPoint(memberPointCreate));
     }
 
+    /**
+     * 회원 적립금 사용
+     * 적립금을 사용할 때, 적립금 사용 이벤트와 적립금 상세 내역을 나눠서 저장합니다.
+     * 거정 먼저 적립된 적립금부터 사용하기 위해서 적립금 상세 내역을 조회하고, 적립금 상세 내역을 순회하며 사용하려는 적립금의 잔액을 차감합니다.
+     *
+     * @param memberPointUseRequest (MemberPointUseRequest) memberId : 회원 아이디, amount : 적립금
+     * @return 회원 적립금 사용 내역 (MemberPointEvent)
+     */
     @Override
     public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUseRequest) {
         // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
@@ -100,6 +144,13 @@ public class MemberPointServiceImpl implements MemberPointService {
         return useEvent;
     }
 
+    /**
+     * 회원 적립금 사용 (Response)
+     * 적립금을 사용하고, 적립금 사용 이벤트를 DTO 형태로 반환합니다.
+     *
+     * @param memberPointUse (MemberPointUseRequest) memberId : 회원 아이디, amount : 적립금
+     * @return 회원 적립금 사용 내역 DTO (MemberPointEventResponse)
+     */
     @Override
     public MemberPointEventResponse useMemberPointResponse(MemberPointUseRequest memberPointUse) {
         return new MemberPointEventResponse(useMemberPoint(memberPointUse));
@@ -125,12 +176,16 @@ public class MemberPointServiceImpl implements MemberPointService {
     }
 
     /**
+     * 회원 적립금 사용 순회
      * 현재 페이지의 적립금 상세 내역을 조회하고 사용하려는 적립금의 잔액을 차감합니다.
-     * @param useEvent
-     * @param search
-     * @param useAmountRemain
-     * @param memberPointDetails
-     * @return
+     * 잔액이 0이 될 때까지 이 메소드를 반복합니다.
+     *
+     * @param useEvent           적립금 사용 이벤트
+     * @param search             적립금 상세 내역 조회를 위한 검색 조건 (매 순회바다 페이지 번호가 증가합니다.)
+     * @param useAmountRemain    사용하려는 적립금의 잔액 (매 순회마다 차감됩니다.)
+     * @param memberPointDetails 생성된 적립금 상세 내역을 담은 리스트
+     * @return useAmountRemain
+     * 사용하려는 적립금의 잔액
      */
     private int clearMemberPointUse(MemberPointEvent useEvent, MemberPointDetailSearch search, int useAmountRemain, List<MemberPointDetail> memberPointDetails) {
         // 현재 페이지의 적립금 상세 내역을 조회합니다.
