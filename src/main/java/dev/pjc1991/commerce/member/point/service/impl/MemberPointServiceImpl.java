@@ -202,7 +202,8 @@ public class MemberPointServiceImpl implements MemberPointService {
             int useAmount = Math.min(useAmountRemain, memberPointDetailRemain.getRemain());
             MemberPointDetail current = MemberPointDetail.useMemberPointDetail(useEvent, memberPointDetailRemain, useAmount);
             memberPointDetails.add(current);
-            useAmountRemain -= memberPointDetailRemain.getRemain();
+            memberPointDetailRepository.save(current);
+            useAmountRemain -= useAmount;
 
             // 잔액이 0이 되면 반복을 종료합니다.
             if (useAmountRemain == 0) break;
