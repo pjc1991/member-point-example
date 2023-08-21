@@ -73,13 +73,6 @@ class MemberPointServiceTest {
         int testCount = Math.toIntExact(Math.round(Math.random() * maxTestCount));
         log.info("test count: {}", testCount);
 
-        // 적립금 생성 요청 오브젝트를 생성합니다.
-        int maxTestPointAmount = 100000;
-        for (int i = 0; i < testCount; i++) {
-            MemberPointCreateRequest memberPointCreateRequest = getTestMemberPointCreateRequest(TEST_MEMBER_ID, Math.toIntExact(Math.round(Math.random() * maxTestPointAmount)));
-            memberPointService.earnMemberPoint(memberPointCreateRequest);
-        }
-
         // when
 
         // 적립금 적립/사용 내역을 조회합니다.
@@ -87,20 +80,28 @@ class MemberPointServiceTest {
         int page = 0;
         int size = 10;
         MemberPointEventSearch search = getMemberPointEventSearch(TEST_MEMBER_ID, page, size);
-        Page<MemberPointEvent> result = memberPointService.getMemberPointEvents(search);
+        Page<MemberPointEvent> before = memberPointService.getMemberPointEvents(search);
+
+        // 적립금을 적립합니다.
+        int maxTestPointAmount = 100000;
+        for (int i = 0; i < testCount; i++) {
+            MemberPointCreateRequest memberPointCreateRequest = getTestMemberPointCreateRequest(TEST_MEMBER_ID, Math.toIntExact(Math.round(Math.random() * maxTestPointAmount)));
+            memberPointService.earnMemberPoint(memberPointCreateRequest);
+        }
+        Page<MemberPointEvent> after = memberPointService.getMemberPointEvents(search);
 
         // then
 
         // 조회된 적립금 적립/사용 내역의 갯수가 예상한 값과 같은지 확인합니다.
-        log.info("expected count: {}", testCount);
-        log.info("result count: {}", result.getTotalElements());
-        assertEquals(testCount, result.getTotalElements());
+        log.info("expected count: {}", before.getTotalElements() + testCount);
+        log.info("result count: {}", after.getTotalElements());
+        assertEquals(before.getTotalElements() + testCount, after.getTotalElements());
 
         // 정상적으로 페이징이 되었는지 확인합니다.
         int expectedSize = Math.min(testCount, search.getSize());
         log.info("expected size: {}", expectedSize);
-        log.info("result size: {}", result.getSize());
-        assertEquals(expectedSize, result.getSize());
+        log.info("result size: {}", after.getSize());
+        assertEquals(expectedSize, after.getSize());
     }
 
     /**
