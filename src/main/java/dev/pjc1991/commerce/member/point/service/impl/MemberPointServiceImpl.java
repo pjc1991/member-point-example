@@ -38,8 +38,20 @@ public class MemberPointServiceImpl implements MemberPointService {
 
     @Override
     @Transactional(readOnly = true)
+    public MemberPointTotalResponse getMemberPointTotalResponse(int memberId) {
+        return new MemberPointTotalResponse(memberId, getMemberPointTotal(memberId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search) {
         return memberPointEventRepositoryCustom.getMemberPointEvents(search);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<MemberPointEventResponse> getMemberPointEventResponses(MemberPointEventSearch search) {
+        return getMemberPointEvents(search).map(MemberPointEventResponse::new);
     }
 
     /**
@@ -65,6 +77,11 @@ public class MemberPointServiceImpl implements MemberPointService {
     }
 
     @Override
+    public MemberPointEventResponse earnMemberPointResponse(MemberPointCreateRequest memberPointCreate) {
+        return new MemberPointEventResponse(earnMemberPoint(memberPointCreate));
+    }
+
+    @Override
     public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUseRequest) {
         // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
         int memberPointTotal = memberPointDetailRepositoryCustom.getMemberPointTotal(memberPointUseRequest.getMemberId());
@@ -81,6 +98,11 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 회원 적립금 상세 내역을 생성합니다.
         List<MemberPointDetail> memberPointDetails = createMemberPointDetails(memberPointUseRequest, useEvent);
         return useEvent;
+    }
+
+    @Override
+    public MemberPointEventResponse useMemberPointResponse(MemberPointUseRequest memberPointUse) {
+        return new MemberPointEventResponse(useMemberPoint(memberPointUse));
     }
 
     private List<MemberPointDetail> createMemberPointDetails(MemberPointUseRequest memberPointUseRequest, MemberPointEvent useEvent) {

@@ -1,10 +1,7 @@
 package dev.pjc1991.commerce.member.point.controller;
 
 import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
-import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
-import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
-import dev.pjc1991.commerce.member.point.dto.MemberPointTotalResponse;
-import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
+import dev.pjc1991.commerce.member.point.dto.*;
 import dev.pjc1991.commerce.member.point.service.MemberPointService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,7 +27,7 @@ public class MemberPointController {
     @GetMapping("/member/{memberId}/point/total")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> getMemberPointTotal(@PathVariable int memberId) {
-        MemberPointTotalResponse response = new MemberPointTotalResponse(memberId, memberPointService.getMemberPointTotal(memberId));
+        MemberPointTotalResponse response = memberPointService.getMemberPointTotalResponse(memberId);
         return ResponseEntity.ok(response);
     }
 
@@ -47,7 +44,7 @@ public class MemberPointController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> getMemberPointEvents(@PathVariable int memberId, @RequestBody MemberPointEventSearch search) {
         search.setMemberId(memberId);
-        Page<MemberPointEvent> memberPointEvents = memberPointService.getMemberPointEvents(search);
+        Page<MemberPointEventResponse> memberPointEvents = memberPointService.getMemberPointEventResponses(search);
         return ResponseEntity.ok(memberPointEvents);
     }
 
@@ -63,8 +60,8 @@ public class MemberPointController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> earnMemberPoint(@PathVariable int memberId, @RequestBody MemberPointCreateRequest memberPointCreate) {
         memberPointCreate.setMemberId(memberId);
-        MemberPointEvent memberPointEvent = memberPointService.earnMemberPoint(memberPointCreate);
-        return ResponseEntity.ok(memberPointEvent);
+        MemberPointEventResponse response = memberPointService.earnMemberPointResponse(memberPointCreate);
+        return ResponseEntity.ok(response);
     }
 
     /**
