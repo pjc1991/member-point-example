@@ -95,6 +95,7 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
         );
 
         query.groupBy(memberPointDetail.memberPointDetailGroupId);
+        query.having(memberPointDetail.amount.sum().gt(0));
         query.orderBy(createdAt.asc());
         query.limit(search.getSize());
         query.offset(search.getOffset());
