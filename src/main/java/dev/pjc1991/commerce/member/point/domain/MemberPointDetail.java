@@ -117,9 +117,10 @@ public class MemberPointDetail {
 
         MemberPointDetail memberPointDetail = new MemberPointDetail();
         memberPointDetail.memberPointEvent = useEvent;
+        memberPointDetail.memberPointDetailGroupId = remain.getMemberPointDetailGroupId();
         memberPointDetail.amount = -useAmount;
         memberPointDetail.createdAt = LocalDateTime.now();
-        memberPointDetail.expireAt = remain.getExpireAt()   ;
+        memberPointDetail.expireAt = remain.getExpireAt();
         useEvent.getMemberPointDetails().add(memberPointDetail);
 
         return memberPointDetail;
@@ -133,5 +134,13 @@ public class MemberPointDetail {
     public void updateGroupIdSelf() {
         // 총합을 계산할 때 이 상세내역 기준으로 계산할 수 있도록 자신의 ID를 그룹 ID로 설정합니다.
         this.memberPointDetailGroupId = this.id;
+    }
+
+    /**
+     * 회원 적립금 사용시 상세 내역에 자기 자신을 환불 대상 ID로 설정합니다.
+     */
+    public void updateRefundGroupIdSelf() {
+        // 환불 대상이 되는 상세 내역의 ID를 환불 대상 ID로 설정합니다.
+        this.memberPointDetailRefundId = this.id;
     }
 }
