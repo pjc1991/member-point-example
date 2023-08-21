@@ -29,6 +29,12 @@ public class MemberPointEventRepositoryCustom extends QuerydslRepositorySupport 
         // 회원 아이디로 조회합니다.
         query.where(QMemberPointEvent.memberPointEvent.memberId.eq(search.getMemberId()));
 
+        // 최신순으로 정렬합니다.
+        query.orderBy(
+                memberPointEvent.createdAt.desc(),
+                memberPointEvent.id.desc()
+        );
+
         // 페이징 처리를 합니다.
         query.limit(search.getSize());
         query.offset(search.getOffset());
