@@ -3,7 +3,6 @@ package dev.pjc1991.commerce.member.point.dto;
 import dev.pjc1991.commerce.dto.PageSearch;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.domain.Sort;
 
 @Getter
 @Setter
