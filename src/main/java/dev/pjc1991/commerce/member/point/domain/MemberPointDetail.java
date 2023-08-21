@@ -13,7 +13,16 @@ import java.time.LocalDateTime;
  */
 @Getter
 @Entity
-@Table(name = "MEMBER_POINT_DETAIL")
+@Table(
+        name = "MEMBER_POINT_DETAIL"
+        , indexes = {
+        @Index(name = "IDX_MEMBER_POINT_DETAIL_MEMBER_POINT_EVENT_ID", columnList = "MEMBER_POINT_EVENT_ID"),
+        @Index(name = "IDX_MEMBER_POINT_DETAIL_MEMBER_POINT_DETAIL_GROUP_ID", columnList = "MEMBER_POINT_DETAIL_GROUP_ID"),
+        @Index(name = "IDX_MEMBER_POINT_DETAIL_MEMBER_POINT_DETAIL_REFUND_ID", columnList = "MEMBER_POINT_DETAIL_REFUND_ID"),
+        @Index(name = "IDX_MEMBER_POINT_DETAIL_CREATED_AT", columnList = "CREATED_AT"),
+        @Index(name = "IDX_MEMBER_POINT_DETAIL_EXPIRE_AT", columnList = "EXPIRE_AT")
+}
+)
 public class MemberPointDetail {
 
     /**
@@ -73,10 +82,9 @@ public class MemberPointDetail {
 
     /**
      * 회원 적립금 적립 발생에 대한 상세 내역을 생성합니다.
-     * @param earnEvent
-     * 회원 적립금 적립 이벤트
-     * @return
-     * 회원 적립금 적립 상세 내역
+     *
+     * @param earnEvent 회원 적립금 적립 이벤트
+     * @return 회원 적립금 적립 상세 내역
      */
     public static MemberPointDetail earnMemberPointDetail(MemberPointEvent earnEvent) {
         if (earnEvent == null) {
