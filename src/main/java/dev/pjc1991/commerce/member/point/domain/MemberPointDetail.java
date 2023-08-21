@@ -106,6 +106,13 @@ public class MemberPointDetail {
 
     }
 
+    /**
+     * 회원 적립금 사용 발생에 대한 상세 내역을 생성합니다.
+     * @param useEvent 회원 적립금 사용 이벤트
+     * @param remain 사용 가능한 회원 적립금 상세 내역
+     * @param useAmount 사용 금액
+     * @return
+     */
     public static MemberPointDetail useMemberPointDetail(MemberPointEvent useEvent, MemberPointDetailRemain remain, int useAmount) {
         if (useEvent == null) {
             throw new IllegalArgumentException("회원 적립금 사용 이벤트가 null 입니다.");
