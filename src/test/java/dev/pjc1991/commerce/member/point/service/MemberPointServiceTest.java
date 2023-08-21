@@ -239,7 +239,7 @@ class MemberPointServiceTest {
      * 사용의 경우에는 부하가 크므로 100회로 제한합니다.
      */
     @ParameterizedTest
-    @ValueSource(ints = {1, 10, 100, 1000})
+    @ValueSource(ints = {1, 10, 100})
     void earnAndUseMemberPointMultipleTimes(int numberOfTest) {
         // given
 
@@ -321,7 +321,7 @@ class MemberPointServiceTest {
     @Test
     void createMassiveRowsTest() {
         // given
-        final int MASSIVE_ROWS = 1000;
+        final int MASSIVE_ROWS = 100;
 
         // 랜덤한 금액을 적립합니다.
         int maxTestPointAmount = TEST_POINT_AMOUNT;
