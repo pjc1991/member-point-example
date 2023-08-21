@@ -201,6 +201,95 @@ class MemberPointServiceTest {
     }
 
     /**
+     * 다수의 적립금 적립 및 사용을 테스트합니다.
+     */
+    @ParameterizedTest
+    @ValueSource(ints = {1, 10, 100, 1000, 10000})
+    void earnAndUseMemberPointMultipleTimes(int numberOfTest) {
+        // given
+
+        // 랜덤한 금액을 적립합니다.
+        int maxTestPointAmount = TEST_POINT_AMOUNT;
+        int currentPoint = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+
+        // when
+
+        // 다수의 적립금 적립 및 사용의 성능을 테스트하기 위해 스톱워치를 시작합니다.
+        StopWatch stopWatch = new StopWatch();
+
+        log.info("numberOfTest: {}", numberOfTest);
+        log.info("maxTestPointAmount: {}", maxTestPointAmount);
+
+        log.info("Member Point Earn Start");
+        stopWatch.start("Member Point Earn");
+        // 적립금을 추가합니다.
+        for (int i = 0; i < numberOfTest; i++) {
+            int amountPointEarn = Math.toIntExact(Math.round(Math.random() * maxTestPointAmount));
+            MemberPointEvent event = memberPointService.earnMemberPoint(getTestMemberPointCreateRequest(TEST_MEMBER_ID, amountPointEarn));
+            currentPoint += event.getAmount();
+            log.info("currentPoint: {}, amountPointEarn: {}", currentPoint, amountPointEarn);
+        }
+        stopWatch.stop();
+
+        log.info("Member Point Use Start");
+        stopWatch.start("Member Point Use");
+        int useCount = 0;
+        for (int i = 0; i < numberOfTest; i++) {
+
+            if (currentPoint == 0) {
+                break;
+            }
+
+            // 랜덤한 금액을 사용합니다. 사용 금액은 0 이상이어야 합니다.
+            int amountPointUse = Math.toIntExact(Math.round(Math.random() * maxTestPointAmount));
+
+            if (amountPointUse > currentPoint) {
+                amountPointUse = currentPoint;
+            }
+
+            MemberPointEvent event = memberPointService.useMemberPoint(getTestMemberPointUseRequest(TEST_MEMBER_ID, amountPointUse));
+            currentPoint += event.getAmount();
+            useCount++;
+            log.info("currentPoint: {}, amountPointUse: {}, useCount: {}", currentPoint, amountPointUse, useCount);
+        }
+        stopWatch.stop();
+        // then
+
+        // stopWatch.prettyPrint()를 통해 측정된 시간을 출력합니다.
+        System.out.println(stopWatch.prettyPrint());
+
+        // 각 작업당 1회에 사용된 시간을 확인합니다.
+        long totalEarn = stopWatch.getTaskInfo()[0].getTimeMillis();
+        long earnTime = totalEarn / numberOfTest;
+
+        long totalUse = stopWatch.getTaskInfo()[1].getTimeMillis();
+        long useTime = totalUse / useCount;
+        log.info("Member Point Earn Count : {}", numberOfTest);
+        log.info("Member Point Earn Time taken per loop : {}", earnTime);
+        log.info("Member Point Use Count : {}", useCount);
+        log.info("Member Point Use Time taken per loop : {}", useTime);
+        log.info("Member Point Earn Total Time : {}", totalEarn);
+        log.info("Member Point Use Total Time : {}", totalUse);
+        log.info("Member Point Earn Total Time + Member Point Use Total Time : {} seconds", (totalEarn + totalUse) / 1000);
+
+
+        int memberPointTotal = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+
+        log.info("currentPoint: {}", currentPoint);
+        log.info("memberPointTotal: {}", memberPointTotal);
+
+        assertEquals(currentPoint, memberPointTotal);
+    }
+
+
+
+
+    /*
+     * 이하는 테스트용 유틸리티 메소드들입니다.
+     */
+
+
+    /**
      * 테스트용 적립금 생성 요청 DTO를 생성합니다.
      *
      * @param amount   적립할 회원 적립금 금액
