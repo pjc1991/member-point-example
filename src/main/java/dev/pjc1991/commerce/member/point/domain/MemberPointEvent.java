@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,10 +19,10 @@ import java.util.Set;
 @Table(
         name = "MEMBER_POINT_EVENT"
         , indexes = {
-            @Index(name = "IDX_MEMBER_POINT_EVENT_MEMBER_ID", columnList = "MEMBER_ID"),
-            @Index(name = "IDX_MEMBER_POINT_EVENT_CREATED_AT", columnList = "CREATED_AT"),
-            @Index(name = "IDX_MEMBER_POINT_EVENT_EXPIRE_AT", columnList = "EXPIRE_AT")
-        }
+        @Index(name = "IDX_MEMBER_POINT_EVENT_MEMBER_ID", columnList = "MEMBER_ID"),
+        @Index(name = "IDX_MEMBER_POINT_EVENT_CREATED_AT", columnList = "CREATED_AT"),
+        @Index(name = "IDX_MEMBER_POINT_EVENT_EXPIRE_AT", columnList = "EXPIRE_AT")
+}
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -93,7 +94,7 @@ public class MemberPointEvent {
         memberPointEvent.memberId = memberPointCreate.getMemberId();
         memberPointEvent.amount = memberPointCreate.getAmount();
         memberPointEvent.createdAt = LocalDateTime.now();
-        memberPointEvent.expireAt = memberPointEvent.createdAt.plusMonths(MEMBER_POINT_EXPIRE_MONTH);
+        memberPointEvent.expireAt = LocalDateTime.of(memberPointEvent.createdAt.plusMonths(MEMBER_POINT_EXPIRE_MONTH).toLocalDate(), LocalTime.MAX);
         return memberPointEvent;
     }
 
