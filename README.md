@@ -90,9 +90,82 @@ curl -X GET http://localhost:8080/member/1/point
 #### 응답
 ```json
 {
-  "__작성_예정__" : "작성 예정"
-}
+  "content": [
+    {
+      "id": 4,
+      "memberId": 1,
+      "amount": 1000,
+      "createdAt": "2023-08-21T17:27:05.465056",
+      "expireAt": "2024-08-21T17:27:05.465056"
+    },
+    {
+      "id": 3,
+      "memberId": 1,
+      "amount": 1000,
+      "createdAt": "2023-08-21T17:27:05.053648",
+      "expireAt": "2024-08-21T17:27:05.053648"
+    },
+    {
+      "id": 2,
+      "memberId": 1,
+      "amount": 1000,
+      "createdAt": "2023-08-21T17:26:36.744625",
+      "expireAt": "2024-08-21T17:26:36.744625"
+    },
+    {
+      "id": 1,
+      "memberId": 1,
+      "amount": 1000,
+      "createdAt": "2023-08-21T17:26:36.328703",
+      "expireAt": "2024-08-21T17:26:36.328703"
+    }
+  ],
+  "pageable": {
+    "sort": {
+      "empty": false,
+      "sorted": true,
+      "unsorted": false
+    },
+    "offset": 0,
+    "pageNumber": 0,
+    "pageSize": 10,
+    "paged": true,
+    "unpaged": false
+  },
+  "last": true,
+  "totalPages": 1,
+  "totalElements": 4,
+  "first": true,
+  "size": 10,
+  "number": 0,
+  "sort": {
+    "empty": false,
+    "sorted": true,
+    "unsorted": false
+  },
+  "numberOfElements": 4,
+  "empty": false
+} 
 ```
+- contents : 적립금 내역 (List)
+  - id : 적립금 내역 ID (Integer)
+  - memberId : 회원 ID (Integer)
+  - amount : 적립금 (Integer)
+  - createdAt : 적립일 (LocalDateTime)
+  - expireAt : 적립금 만료일 (LocalDateTime)
+- pageable : 페이징 정보 (Pageable) (Spring Data JPA 구현체)
+- last : 마지막 페이지 여부 (Boolean)
+- totalElements : 전체 요소 수 (Integer)
+- totalPages : 전체 페이지 수 (Integer)
+- first : 첫 페이지 여부 (Boolean)
+- size : 페이지 크기 (Integer)
+- number : 현재 페이지 번호 (Integer)
+- sort : 정렬 정보 (Sort) (Spring Data JPA 구현체)
+  - empty : 정렬 정보가 비어있는지 여부 (Boolean)
+  - sorted : 정렬 여부 (Boolean)
+  - unsorted : 정렬되지 않았는지 여부 (Boolean)
+- numberOfElements : 현재 페이지의 요소 수 (Integer)
+- empty : 현재 페이지가 비어있는지 여부 (Boolean)
 
 ### 회원별 적립금 적립
 
@@ -105,12 +178,29 @@ curl -X POST http://localhost:8080/member/1/point/earn \
   }'
 ```
 
+- Method: POST
+- URL: /member/{memberId}/point/earn
+- Path Variable
+  - memberId: 회원 ID
+- Request Body
+ - amount: 적립금 (Integer)
+
 #### 응답
 ```json
 {
-  "__작성_예정__" : "작성 예정"
+  "id": 1,
+  "memberId": 1,
+  "amount": 1000,
+  "createdAt": "2023-08-21T17:07:35.04654",
+  "expireAt": "2024-08-21T17:07:35.04654"
 }
 ```
+
+- id : 적립금 내역 ID (Integer)
+- memberId : 회원 ID (Integer)
+- amount : 적립금 (Integer)
+- createdAt : 적립일 (LocalDateTime)
+- expireAt : 적립금 만료일 (LocalDateTime)
 
 ### 회원별 적립금 사용 (먼저 적립된 순서로 사용)
 
@@ -119,15 +209,34 @@ curl -X POST http://localhost:8080/member/1/point/earn \
 curl -X POST http://localhost:8080/member/1/point/use \
     -H 'Content-Type: application/json' \
     -d '{
-        "amount": 1000
+        "amount": 300
     }'
 ```
+
+- Method: POST
+- URL: /member/{memberId}/point/use
+- Path Variable
+  - memberId: 회원 ID
+- Request Body
+ - amount: 사용금액 (Integer)
 
 #### 응답
 ```json
 {
-  "__작성_예정__" : "작성 예정"
-}
+  "id": 2,
+  "memberId": 1,
+  "amount": -300,
+  "createdAt": "2023-08-21T17:37:39.755156",
+  "expireAt": null
+}   
 ```
+
+- id : 적립금 내역 ID (Integer)
+- memberId : 회원 ID (Integer)
+- amount : 금액 (Integer)
+  - 사용된 적립금액은 음수로 표현합니다.
+- createdAt : 적립일 (LocalDateTime)
+- expireAt : 적립금 만료일 (LocalDateTime)
+  - 적립금 사용 내역은 만료일이 없으므로 null로 표현합니다.
 
 
