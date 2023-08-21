@@ -17,6 +17,17 @@ public interface MemberPointService {
     int getMemberPointTotal(int memberId);
 
     /**
+     * 회원 적립금 합계 조회 (캐싱 갱신)
+     * @param memberId
+     * 회원 아이디
+     * @param amount
+     * 회원 적립금 증감액
+     * @return
+     * 회원 적립금 합계
+     */
+    int updateMemberPointTotal(int memberId, int amount);
+
+    /**
      * 회원 적립금 합계 조회 (Response)
      * @param
      * memberId 회원 아이디

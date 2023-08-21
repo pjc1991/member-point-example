@@ -10,6 +10,11 @@ import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepository;
 import dev.pjc1991.commerce.member.point.service.MemberPointService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,12 +27,22 @@ import java.util.List;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
+@CacheConfig(cacheNames = "memberPoint")
 public class MemberPointServiceImpl implements MemberPointService {
 
     private final MemberPointEventRepository memberPointEventRepository;
     private final MemberPointEventRepositoryCustom memberPointEventRepositoryCustom;
     private final MemberPointDetailRepository memberPointDetailRepository;
     private final MemberPointDetailRepositoryCustom memberPointDetailRepositoryCustom;
+
+
+    /**
+     * 자기 자신을 참조하는 빈을 주입받기 위해 @Lazy 어노테이션을 사용합니다.
+     * 스스로를 주입하는 이유는 Cache 어노테이션을 사용할 수 있습니다.
+     */
+    @Autowired
+    @Lazy
+    private MemberPointService memberPointService;
 
 
     /**
@@ -39,8 +54,24 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "memberPointTotal", key = "#memberId")
     public int getMemberPointTotal(int memberId) {
         return memberPointDetailRepositoryCustom.getMemberPointTotal(memberId);
+    }
+
+    /**
+     * 회원 적립금 합계 조회 (CachePut)
+     * CachePut 어노테이션을 사용해, 캐시값을 강제로 업데이트합니다.
+     *
+     * @param memberId 회원 아이디
+     * @param amount   적립금 증감액
+     * @return 회원 적립금 합계 (int)
+     */
+    @Override
+    @Transactional
+    @CachePut(value = "memberPointTotal", key = "#memberId")
+    public int updateMemberPointTotal(int memberId, int amount) {
+        return memberPointService.getMemberPointTotal(memberId) + amount;
     }
 
     /**
@@ -102,6 +133,9 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 회원 적립금 상세 내역의 그룹 아이디를 업데이트합니다.
         detail.updateGroupIdSelf();
         memberPointDetailRepository.save(detail);
+
+        // 적립금 합계 캐시값을 강제로 업데이트합니다.
+        memberPointService.updateMemberPointTotal(memberPointCreate.getMemberId(), event.getAmount());
         return event;
     }
 
@@ -128,7 +162,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     @Override
     public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUseRequest) {
         // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
-        int memberPointTotal = memberPointDetailRepositoryCustom.getMemberPointTotal(memberPointUseRequest.getMemberId());
+        int memberPointTotal = getMemberPointTotal(memberPointUseRequest.getMemberId());
         // 사용하려는 적립금이 총액보다 크다면 예외를 발생시킵니다.
         if (memberPointTotal - memberPointUseRequest.getAmount() < 0) {
             throw new RuntimeException("적립금이 부족합니다.");
@@ -146,6 +180,9 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 회원 적립금 상세 내역의 그룹 아이디를 업데이트합니다.
         memberPointDetails.forEach(MemberPointDetail::updateRefundGroupIdSelf);
         memberPointDetailRepository.saveAll(memberPointDetails);
+
+        // 적립금 합계 캐시값을 강제로 업데이트합니다.
+        memberPointService.updateMemberPointTotal(memberPointUseRequest.getMemberId(), useEvent.getAmount());
         return useEvent;
     }
 
