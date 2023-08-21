@@ -98,18 +98,18 @@ public class MemberPointDetail {
 
     }
 
-    public static MemberPointDetail useMemberPointDetail(MemberPointEvent useEvent, MemberPointDetailRemain remain, int amount) {
+    public static MemberPointDetail useMemberPointDetail(MemberPointEvent useEvent, MemberPointDetailRemain remain, int useAmount) {
         if (useEvent == null) {
             throw new IllegalArgumentException("회원 적립금 사용 이벤트가 null 입니다.");
         }
 
-        if (amount <= 0) {
+        if (useAmount <= 0) {
             throw new IllegalArgumentException("사용 금액은 0 이하일 수 없습니다.");
         }
 
         MemberPointDetail memberPointDetail = new MemberPointDetail();
         memberPointDetail.memberPointEvent = useEvent;
-        memberPointDetail.amount = -amount;
+        memberPointDetail.amount = -useAmount;
         memberPointDetail.createdAt = LocalDateTime.now();
         memberPointDetail.expireAt = remain.getExpireAt()   ;
         useEvent.getMemberPointDetails().add(memberPointDetail);
