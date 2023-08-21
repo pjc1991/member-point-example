@@ -164,6 +164,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     private List<MemberPointDetail> createMemberPointDetails(MemberPointUseRequest memberPointUseRequest, MemberPointEvent useEvent) {
         // 적립금 상세 조회를 위해 사용할 검색 조건입니다.
         MemberPointDetailSearch search = new MemberPointDetailSearch();
+        search.setSize(100);
         search.setMemberId(memberPointUseRequest.getMemberId());
 
         // 사용하려는 적립금의 잔액입니다.
@@ -172,10 +173,22 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 생성된 적립금 상세 내역을 담을 리스트입니다.
         List<MemberPointDetail> memberPointDetails = new ArrayList<>();
 
+        long totalCount = memberPointDetailRepository.countByMemberPointEventMemberId(memberPointUseRequest.getMemberId());
+
         // 잔액이 0이 될 때까지 반복합니다.
         while (useAmountRemain > 0) {
             useAmountRemain = clearMemberPointUse(useEvent, search, useAmountRemain, memberPointDetails);
+
+            if (useAmountRemain == 0) {
+                break;
+            }
+
+            if (search.getOffset() > totalCount) {
+                throw new RuntimeException("비정상적으로 반복문이 진행되고 있습니다. ");
+            }
+
         }
+
         return memberPointDetails;
     }
 
@@ -185,7 +198,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      * 잔액이 0이 될 때까지 이 메소드를 반복합니다.
      *
      * @param useEvent           적립금 사용 이벤트
-     * @param search             적립금 상세 내역 조회를 위한 검색 조건 (매 순회바다 페이지 번호가 증가합니다.)
+     * @param search             적립금 상세 내역 조회를 위한 검색 조건
      * @param useAmountRemain    사용하려는 적립금의 잔액 (매 순회마다 차감됩니다.)
      * @param memberPointDetails 생성된 적립금 상세 내역을 담은 리스트
      * @return useAmountRemain
@@ -210,8 +223,6 @@ public class MemberPointServiceImpl implements MemberPointService {
             // 잔액이 0이 되면 반복을 종료합니다.
             if (useAmountRemain == 0) break;
         }
-
-        search.setPage(search.getPage() + 1);
         return useAmountRemain;
     }
 }
