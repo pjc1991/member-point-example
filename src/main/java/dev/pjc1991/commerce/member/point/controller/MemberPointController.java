@@ -25,8 +25,7 @@ public class MemberPointController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public MemberPointTotalResponse getMemberPointTotal(@PathVariable int memberId) {
-        MemberPointTotalResponse response = memberPointService.getMemberPointTotalResponse(memberId);
-        return response;
+        return memberPointService.getMemberPointTotalResponse(memberId);
     }
 
     /**
@@ -40,7 +39,12 @@ public class MemberPointController {
     @GetMapping("/member/{memberId}/point")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public Page<MemberPointEventResponse> getMemberPointEvents(@PathVariable int memberId, @RequestBody MemberPointEventSearch search) {
+    public Page<MemberPointEventResponse> getMemberPointEvents(@PathVariable int memberId, @RequestBody(required = false) MemberPointEventSearch search) {
+
+        if (search == null) {
+            search = new MemberPointEventSearch();
+        }
+
         search.setMemberId(memberId);
         return memberPointService.getMemberPointEventResponses(search);
     }
