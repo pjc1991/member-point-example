@@ -258,6 +258,10 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @param expireAt 변경할 만료 시점
      */
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "memberPointEvent", allEntries = true),
+            @CacheEvict(value = "memberPointTotal", allEntries = true)
+    })
     public void changeExpireAt(long memberPointEventId, LocalDateTime expireAt) {
         // 테스트 전용 코드입니다.
         log.warn("회원 적립금 이벤트의 만료 시점을 변경합니다. 이 메소드는 테스트 코드에서만 사용합니다. 변경할 만료 시점: {}", expireAt);
