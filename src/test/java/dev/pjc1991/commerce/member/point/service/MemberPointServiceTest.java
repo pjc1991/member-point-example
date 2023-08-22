@@ -85,7 +85,7 @@ class MemberPointServiceTest {
         System.out.println(stopWatch.prettyPrint());
 
         // 적립금 합계가 예상한 값과 같은지 확인합니다.
-        log.info("expected point: {}", testPointAmount);
+        log.info("expected point: {}", expectedPoint);
         log.info("result point: {}", result);
 
         assertEquals(expectedPoint, result);
