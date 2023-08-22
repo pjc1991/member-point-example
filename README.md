@@ -1,10 +1,10 @@
 # 회원 적립금 API 개발 예시
 
-## 이 프로젝트는?
+## 요약
 
 이 프로젝트는 회원 적립금 API를 개발하기 위한 예시입니다.
 
-## 무슨 기능을 가지고 있나요?
+## 프로젝트 기능
 
 이 프로젝트는 다음의 기능을 가지고 있습니다.
 
@@ -12,19 +12,23 @@
 - 회원별 적립금 적립/사용 내역 조회 (페이징)
 - 회원별 적립금 적립
 - 회원별 적립금 사용 (먼저 적립된 순서로 사용)
+- 회원 적립금 만료 
 
-## 무슨 기술을 사용하고 있나요?
+## 사용하는 기술 
 
 다음의 기술을 사용해서 구성했습니다.
 
 - Java 17
 - Spring Boot
 - Spring Data JPA
+- Spring Data Redis
 - H2 Database
+- Redis (Embedded)
 - QueryDSL
+- Blazed-Persistence
 - JUnit 5
 
-## 어떻게 실행하나요?
+## 프로젝트 실행 방법
 
 1. 이 리포지터리를 클론하고 루트 디렉토리로 이동합니다.
 
@@ -47,9 +51,9 @@ cd member-point-example
 
 ---
 
-## API 명세
+## 기능 명세
 
-### 회원별 적립금 합계 조회
+### API - 회원별 적립금 합계 조회
 
 #### 요청
 ```bash
@@ -71,8 +75,13 @@ curl -X GET http://localhost:8080/member/1/point/total
 
 - memberId : 회원 ID (Integer)
 - totalPoint : 적립금 합계 (Integer)
+---
 
-### 회원별 적립금 적립/사용 내역 조회 (페이징)
+>dev.pjc1991.commerce.member.point.controller.MemberPointController.java
+
+구체적인 코드는 해당 경로에서 확인 가능합니다.
+
+### API - 회원별 적립금 적립/사용 내역 조회 (페이징)
 
 #### 요청
 ```bash
@@ -95,6 +104,7 @@ curl -X GET http://localhost:8080/member/1/point
       "id": 4,
       "memberId": 1,
       "amount": 1000,
+      "type": "EARN",
       "createdAt": "2023-08-21T17:27:05.465056",
       "expireAt": "2024-08-21T17:27:05.465056"
     },
@@ -102,6 +112,7 @@ curl -X GET http://localhost:8080/member/1/point
       "id": 3,
       "memberId": 1,
       "amount": 1000,
+      "type": "EARN",
       "createdAt": "2023-08-21T17:27:05.053648",
       "expireAt": "2024-08-21T17:27:05.053648"
     },
@@ -109,6 +120,7 @@ curl -X GET http://localhost:8080/member/1/point
       "id": 2,
       "memberId": 1,
       "amount": 1000,
+      "type": "EARN",
       "createdAt": "2023-08-21T17:26:36.744625",
       "expireAt": "2024-08-21T17:26:36.744625"
     },
@@ -116,6 +128,7 @@ curl -X GET http://localhost:8080/member/1/point
       "id": 1,
       "memberId": 1,
       "amount": 1000,
+      "type": "EARN",
       "createdAt": "2023-08-21T17:26:36.328703",
       "expireAt": "2024-08-21T17:26:36.328703"
     }
@@ -151,6 +164,12 @@ curl -X GET http://localhost:8080/member/1/point
   - id : 적립금 내역 ID (Integer)
   - memberId : 회원 ID (Integer)
   - amount : 적립금 (Integer)
+  - type : 적립금 내역 타입 (Enum)
+    - EARN : 적립
+    - USE : 사용
+    - EXPIRE : 만료
+    - CANCEL : 취소
+    - REFUND : 환불
   - createdAt : 적립일 (LocalDateTime)
   - expireAt : 적립금 만료일 (LocalDateTime)
 - pageable : 페이징 정보 (Pageable) (Spring Data JPA 구현체)
@@ -166,8 +185,12 @@ curl -X GET http://localhost:8080/member/1/point
   - unsorted : 정렬되지 않았는지 여부 (Boolean)
 - numberOfElements : 현재 페이지의 요소 수 (Integer)
 - empty : 현재 페이지가 비어있는지 여부 (Boolean)
+---
 
-### 회원별 적립금 적립
+>dev.pjc1991.commerce.member.point.controller.MemberPointController.java
+
+구체적인 코드는 해당 경로에서 확인 가능합니다.
+### API - 회원별 적립금 적립
 
 #### 요청
 ```bash
@@ -182,8 +205,8 @@ curl -X POST http://localhost:8080/member/1/point/earn \
 - URL: /member/{memberId}/point/earn
 - Path Variable
   - memberId: 회원 ID
-- Request Body
- - amount: 적립금 (Integer)
+- Request Body 
+  - amount: 적립금 (Integer)
 
 #### 응답
 ```json
@@ -199,10 +222,17 @@ curl -X POST http://localhost:8080/member/1/point/earn \
 - id : 적립금 내역 ID (Integer)
 - memberId : 회원 ID (Integer)
 - amount : 적립금 (Integer)
+- type : 적립금 내역 타입 (Enum)
+  - EARN : 적립
 - createdAt : 적립일 (LocalDateTime)
 - expireAt : 적립금 만료일 (LocalDateTime)
+---
 
-### 회원별 적립금 사용 (먼저 적립된 순서로 사용)
+>dev.pjc1991.commerce.member.point.controller.MemberPointController.java
+
+구체적인 코드는 해당 경로에서 확인 가능합니다.
+
+### API - 회원별 적립금 사용 (먼저 적립된 순서로 사용)
 
 #### 요청
 ```bash
@@ -218,7 +248,7 @@ curl -X POST http://localhost:8080/member/1/point/use \
 - Path Variable
   - memberId: 회원 ID
 - Request Body
- - amount: 사용금액 (Integer)
+  - amount: 사용금액 (Integer)
 
 #### 응답
 ```json
@@ -235,8 +265,54 @@ curl -X POST http://localhost:8080/member/1/point/use \
 - memberId : 회원 ID (Integer)
 - amount : 금액 (Integer)
   - 사용된 적립금액은 음수로 표현합니다.
+- type : 적립금 내역 타입 (Enum)
+  - USE : 사용
 - createdAt : 적립일 (LocalDateTime)
 - expireAt : 적립금 만료일 (LocalDateTime)
   - 적립금 사용 내역은 만료일이 없으므로 null로 표현합니다.
+  
+---
 
+>dev.pjc1991.commerce.member.point.controller.MemberPointController.java
 
+구체적인 코드는 해당 경로에서 확인 가능합니다.
+
+### 스케쥴 - 회원 적립금 만료
+
+매일 00시 00분 00초에 회원 적립금 만료 스케쥴이 실행됩니다.
+
+```java
+// MemberPointScheduledTask.java
+
+@Component
+@Slf4j
+@RequiredArgsConstructor
+public class MemberPointScheduledTasks {
+
+  private final MemberPointService memberPointService;
+
+  /**
+   * 회원 적립금 만료 처리
+   * 매일 00:00:00에 실행됩니다.
+   */
+  @Scheduled(cron = "0 0 0 * * *")
+  public void expireMemberPoint() {
+    // StopWatch를 사용하여 실행 시간을 측정합니다.
+    StopWatch stopWatch = new StopWatch();
+
+    log.info("expireMemberPoint start");
+    stopWatch.start();
+    memberPointService.expireMemberPoint();
+    stopWatch.stop();
+    log.info("expireMemberPoint end");
+
+    log.info("expireMemberPoint 총 : {}ms", stopWatch.getTotalTimeMillis());
+  }
+}
+```
+
+---
+
+>dev.pjc1991.commerce.member.point.component.MemberPointScheduledTask.java
+
+구체적인 코드는 해당 경로에서 확인 가능합니다.
