@@ -206,14 +206,18 @@ public class MemberPointServiceImpl implements MemberPointService {
         return;
     }
 
+    /**
+     * 회원 적립금 만료 처리
+     * 적립금 만료 시점을 지난 적립금 상세 내역을 조회하고, 적립금 만료 이벤트와 적립금 만료 상세 내역을 생성합니다.
+     */
     @Override
     public void expireMemberPoint() {
         // 적립금 만료 시점을 지난 적립금 상세 내역을 조회합니다.
         List<MemberPointDetailRemain> memberPointDetails = memberPointDetailRepositoryCustom.getMemberPointDetailExpired();
-        log.info("만료될 적립금 상세 내역을 조회합니다. 조회된 적립금 상세 내역 size: {}", memberPointDetails.size());
+        log.info("만료 예정 적립금 상세 내역 {}건을 확인했습니다. ", memberPointDetails.size());
         // 적립금 상세 내역을 순회하며 적립금 만료 이벤트를 생성합니다.
         for (MemberPointDetailRemain memberPointDetailRemain : memberPointDetails) {
-            log.info("적립금 만료 이벤트를 생성합니다. 만료될 적립금 상세 내역: {}", memberPointDetailRemain);
+            log.info("상세 내역 아이디 : {}, 만료 금액 : {}", memberPointDetailRemain.getMemberPointDetailGroupId(), memberPointDetailRemain.getRemain());
             MemberPointEvent expireEvent = MemberPointEvent.expireMemberPoint(memberPointDetailRemain);
             memberPointEventRepository.save(expireEvent);
 
@@ -310,16 +314,20 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 생성된 적립금 상세 내역을 담을 리스트입니다.
         List<MemberPointDetail> memberPointDetails = new ArrayList<>();
 
+        // 무한 루프를 방지하기 위해 적립금 상세 내역의 총 개수를 조회합니다.
         long totalCount = memberPointDetailRepository.countByMemberPointEventMemberId(memberPointUseRequest.getMemberId());
 
         // 잔액이 0이 될 때까지 반복합니다.
         while (useAmountRemain > 0) {
+            // 현재 페이지의 적립금 상세 내역을 조회하고, 사용하려는 적립금의 잔액을 차감합니다.
             useAmountRemain = clearMemberPointUse(useEvent, search, useAmountRemain, memberPointDetails);
 
+            // 잔액이 0이 되면 반복을 종료합니다.
             if (useAmountRemain == 0) {
                 break;
             }
 
+            // 오류로 인해 무한 루프하는 것을 방지합니다.
             if (search.getOffset() > totalCount) {
                 throw new RuntimeException("비정상적으로 반복문이 진행되고 있습니다. ");
             }
@@ -331,7 +339,7 @@ public class MemberPointServiceImpl implements MemberPointService {
 
     /**
      * 회원 적립금 사용 순회
-     * 현재 페이지의 적립금 상세 내역을 조회하고 사용하려는 적립금의 잔액을 차감합니다.
+     * 현재 페이지의 적립금 상세 내역을 조회하고 사용하려는 적립금의 잔액을 차감하는 유틸리티 메소드입니다.
      * 잔액이 0이 될 때까지 이 메소드를 반복합니다.
      *
      * @param useEvent           적립금 사용 이벤트
@@ -345,7 +353,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 현재 페이지의 적립금 상세 내역을 조회합니다.
         List<MemberPointDetailRemain> memberPointDetailAvailable = memberPointDetailRepositoryCustom.getMemberPointDetailAvailable(search);
 
-        // 현재 페이지의 적립금 상세 내역이 없다면 다음 페이지를 검색합니다.
+        // 현재 페이지에 적립금 상세 내역이 없다면 다음 페이지를 검색합니다.
         if (memberPointDetailAvailable.isEmpty()) {
             search.setPage(search.getPage() + 1);
             return useAmountRemain;
@@ -355,13 +363,18 @@ public class MemberPointServiceImpl implements MemberPointService {
         for (MemberPointDetailRemain memberPointDetailRemain : memberPointDetailAvailable) {
             // 사용 금액과 적립금 상세 내역 중 작은 값으로 생성합니다.
             int useAmount = Math.min(useAmountRemain, memberPointDetailRemain.getRemain());
+
+            // 적립금 상세 내역을 생성합니다.
             MemberPointDetail current = MemberPointDetail.useMemberPointDetail(useEvent, memberPointDetailRemain, useAmount);
             memberPointDetails.add(current);
+
+            // 사용하려는 적립금의 잔액을 차감합니다.
             useAmountRemain -= useAmount;
 
             // 잔액이 0이 되면 반복을 종료합니다.
             if (useAmountRemain == 0) break;
         }
+        // 다음 페이지를 검색합니다.
         search.setPage(search.getPage() + 1);
         return useAmountRemain;
     }
