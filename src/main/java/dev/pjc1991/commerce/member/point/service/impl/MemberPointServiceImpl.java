@@ -234,6 +234,9 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     public void changeExpireAt(long memberPointEventId, LocalDateTime expireAt) {
+        // 테스트 전용 코드입니다.
+        log.warn("회원 적립금 이벤트의 만료 시점을 변경합니다. 이 메소드는 테스트 코드에서만 사용합니다. 변경할 만료 시점: {}", expireAt);
+
         // 회원 적립금 이벤트를 조회합니다.
         MemberPointEvent memberPointEvent = memberPointEventRepository.findById(memberPointEventId).orElseThrow(() -> new RuntimeException("회원 적립금 이벤트가 존재하지 않습니다."));
         if (memberPointEvent.getType() != MemberPointEvent.MemberPointEventType.EARN) {
