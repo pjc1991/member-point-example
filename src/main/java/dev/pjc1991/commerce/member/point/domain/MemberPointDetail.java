@@ -1,5 +1,6 @@
 package dev.pjc1991.commerce.member.point.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.pjc1991.commerce.member.point.dto.MemberPointDetailRemain;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -39,6 +40,7 @@ public class MemberPointDetail {
      * 회원 적립금 이벤트
      * 이 상세 내역을 생성한 이벤트
      */
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "MEMBER_POINT_EVENT_ID", nullable = false)
     private MemberPointEvent memberPointEvent;

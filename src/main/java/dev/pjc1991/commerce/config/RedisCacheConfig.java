@@ -1,5 +1,6 @@
 package dev.pjc1991.commerce.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -20,12 +21,13 @@ import java.time.Duration;
 public class RedisCacheConfig {
 
     private final RedisConnectionFactory cf;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public CacheManager cacheManager() {
         RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper)))
                 .entryTtl(Duration.ofMinutes(10L));
 
         return RedisCacheManager.RedisCacheManagerBuilder.fromConnectionFactory(cf).cacheDefaults(configuration).build();

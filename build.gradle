@@ -57,6 +57,9 @@ dependencies {
 	implementation 'com.blazebit:blaze-persistence-core-api-jakarta:1.6.9'
 	implementation 'com.blazebit:blaze-persistence-integration-hibernate-6.2:1.6.9'
 
+	// com.fasterxml.jackson.datatype:jackson-datatype-jsr310
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
 }
 
 tasks.named('test') {

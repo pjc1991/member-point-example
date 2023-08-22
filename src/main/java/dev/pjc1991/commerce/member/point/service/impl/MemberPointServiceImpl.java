@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -95,6 +96,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "memberPointEvent", key = "#search.memberId + #search.page + #search.size")
     public Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search) {
         return memberPointEventRepositoryCustom.getMemberPointEvents(search);
     }
@@ -109,7 +111,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     @Override
     @Transactional(readOnly = true)
     public Page<MemberPointEventResponse> getMemberPointEventResponses(MemberPointEventSearch search) {
-        return getMemberPointEvents(search).map(MemberPointEventResponse::new);
+        return self.getMemberPointEvents(search).map(MemberPointEventResponse::new);
     }
 
     /**
@@ -120,7 +122,10 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 적립 내역 (MemberPointEvent)
      */
     @Override
-    @CacheEvict(value = "memberPointTotal", key = "#memberPointCreate.memberId")
+    @Caching(evict = {
+            @CacheEvict(value = "memberPointEvent", allEntries = true),
+            @CacheEvict(value = "memberPointTotal", key = "#memberPointCreate.memberId")
+    })
     public MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate) {
         // 회원 적립금 이벤트를 생성합니다.
         MemberPointEvent event = MemberPointEvent.earnMemberPoint(memberPointCreate);
@@ -144,7 +149,10 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 적립 DTO (MemberPointEventResponse)
      */
     @Override
-    @CacheEvict(value = "memberPointTotal", key = "#memberPointCreate.memberId")
+    @Caching(evict = {
+            @CacheEvict(value = "memberPointEvent", allEntries = true),
+            @CacheEvict(value = "memberPointTotal", key = "#memberPointCreate.memberId")
+    })
     public MemberPointEventResponse earnMemberPointResponse(MemberPointCreateRequest memberPointCreate) {
         return new MemberPointEventResponse(earnMemberPoint(memberPointCreate));
     }
@@ -158,7 +166,10 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 사용 내역 (MemberPointEvent)
      */
     @Override
-    @CacheEvict(value = "memberPointTotal", key = "#memberPointUseRequest.memberId")
+    @Caching(evict = {
+            @CacheEvict(value = "memberPointEvent", allEntries = true),
+            @CacheEvict(value = "memberPointTotal", key = "#memberPointUseRequest.memberId")
+    })
     public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUseRequest) {
         // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
         int memberPointTotal = self.getMemberPointTotal(memberPointUseRequest.getMemberId());
@@ -191,7 +202,10 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 사용 내역 DTO (MemberPointEventResponse)
      */
     @Override
-    @CacheEvict(value = "memberPointTotal", key = "#memberPointUse.memberId")
+    @Caching(evict = {
+            @CacheEvict(value = "memberPointEvent", allEntries = true),
+            @CacheEvict(value = "memberPointTotal", key = "#memberPointUse.memberId")
+    })
     public MemberPointEventResponse useMemberPointResponse(MemberPointUseRequest memberPointUse) {
         return new MemberPointEventResponse(useMemberPoint(memberPointUse));
     }
@@ -201,7 +215,10 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @param memberId 회원 아이디
      */
     @Override
-    @CacheEvict(value = "memberPointTotal", key = "#memberId")
+    @Caching(evict = {
+            @CacheEvict(value = "memberPointEvent", allEntries = true),
+            @CacheEvict(value = "memberPointTotal", key = "#memberId")
+    })
     public void clearMemberPointTotalCache(int memberId) {
         return;
     }
@@ -267,6 +284,10 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Caching(evict = {
+            @CacheEvict(value = "memberPointEvent", allEntries = true),
+            @CacheEvict(value = "memberPointTotal", key = "#memberId")
+    })
     public void checkMemberPoint(int memberId) {
         // 해당 회원의 적립금 상세 그룹을 조회합니다.
         List<MemberPointDetailRemain> memberPointDetails = memberPointDetailRepositoryCustom.getMemberPointRemains(memberId);

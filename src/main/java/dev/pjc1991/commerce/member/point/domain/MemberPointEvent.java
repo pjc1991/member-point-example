@@ -1,5 +1,6 @@
 package dev.pjc1991.commerce.member.point.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import dev.pjc1991.commerce.member.point.dto.MemberPointDetailRemain;
 import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
@@ -55,6 +56,7 @@ public class MemberPointEvent {
     /**
      * 회원 적립금 적립/사용 내역
      */
+    @JsonIgnore
     @OneToMany(mappedBy = "memberPointEvent", cascade = CascadeType.ALL)
     private Set<MemberPointDetail> memberPointDetails = new HashSet<>();
 
