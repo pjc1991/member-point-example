@@ -48,6 +48,20 @@ public class MemberPointDetailRemain {
     public MemberPointDetailRemain(
             Long MemberPointDetailGroupId,
             Integer remain,
+            LocalDateTime expireAt,
+            LocalDateTime createdAt,
+            Integer memberId
+    ) {
+        this.MemberPointDetailGroupId = MemberPointDetailGroupId;
+        this.remain = remain;
+        this.expireAt = expireAt;
+        this.createdAt = createdAt;
+        this.memberId = memberId;
+    }
+
+    public MemberPointDetailRemain(
+            Long MemberPointDetailGroupId,
+            Integer remain,
             Integer earn,
             Integer used,
             LocalDateTime expireAt,

@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -209,8 +210,10 @@ public class MemberPointServiceImpl implements MemberPointService {
     public void expireMemberPoint() {
         // 적립금 만료 시점을 지난 적립금 상세 내역을 조회합니다.
         List<MemberPointDetailRemain> memberPointDetails = memberPointDetailRepositoryCustom.getMemberPointDetailExpired();
+        log.info("만료될 적립금 상세 내역을 조회합니다. 조회된 적립금 상세 내역 size: {}", memberPointDetails.size());
         // 적립금 상세 내역을 순회하며 적립금 만료 이벤트를 생성합니다.
         for (MemberPointDetailRemain memberPointDetailRemain : memberPointDetails) {
+            log.info("적립금 만료 이벤트를 생성합니다. 만료될 적립금 상세 내역: {}", memberPointDetailRemain);
             MemberPointEvent expireEvent = MemberPointEvent.expireMemberPoint(memberPointDetailRemain);
             memberPointEventRepository.save(expireEvent);
 
@@ -219,7 +222,33 @@ public class MemberPointServiceImpl implements MemberPointService {
 
             // 회원 적립금 상세 내역의 환불 그룹 아이디를 업데이트합니다.
             expireDetail.updateRefundGroupIdSelf();
+            memberPointDetailRepository.save(expireDetail);
         }
+    }
+
+    /**
+     * 회원 적립금 만료 시점 변경 (테스트 전용)
+     * 테스트 코드에서만 사용합니다.
+     * @param memberPointEventId 회원 적립금 이벤트 아이디
+     * @param expireAt 변경할 만료 시점
+     */
+    @Override
+    public void changeExpireAt(long memberPointEventId, LocalDateTime expireAt) {
+        // 회원 적립금 이벤트를 조회합니다.
+        MemberPointEvent memberPointEvent = memberPointEventRepository.findById(memberPointEventId).orElseThrow(() -> new RuntimeException("회원 적립금 이벤트가 존재하지 않습니다."));
+        if (memberPointEvent.getType() != MemberPointEvent.MemberPointEventType.EARN) {
+            throw new RuntimeException("회원 적립금 이벤트의 타입이 적립이 아닙니다.");
+        }
+
+        // 만료 시점을 변경합니다.
+        memberPointEvent.setExpireAt(expireAt);
+
+        // 회원 적립금 이벤트의 상세 내역 그룹을 모두 조회합니다.
+        List<MemberPointDetail> memberPointDetailGroups = memberPointDetailRepository.findByMemberPointDetailGroupId(memberPointEvent.getMemberPointDetails().stream().findFirst().get().getId());
+        List<MemberPointEvent> memberPointDetailGroupEvents = memberPointDetailGroups.stream().map(MemberPointDetail::getMemberPointEvent).toList();
+
+        // 만료 시점을 변경합니다.
+        memberPointDetailGroupEvents.forEach(memberPointEvent1 -> memberPointEvent1.setExpireAt(expireAt));
     }
 
     /**

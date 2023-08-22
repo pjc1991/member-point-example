@@ -1,9 +1,13 @@
 package dev.pjc1991.commerce.member.point.service;
 
+import dev.pjc1991.commerce.member.point.domain.MemberPointDetail;
 import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
 import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
+import dev.pjc1991.commerce.member.point.repository.MemberPointDetailRepository;
+import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +20,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.util.StopWatch;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -27,6 +35,15 @@ class MemberPointServiceTest {
     private static final int TEST_MEMBER_ID = 1;
 
     private static final int TEST_POINT_AMOUNT = 10000;
+
+    @Autowired
+    EntityManager em;
+
+    @Autowired
+    MemberPointEventRepository memberPointEventRepository;
+
+    @Autowired
+    MemberPointDetailRepository memberPointDetailRepository;
 
     @Autowired
     MemberPointService memberPointService;
@@ -366,6 +383,69 @@ class MemberPointServiceTest {
     }
 
 
+    @Test
+    void expireMemberPoint() {
+        // given
+
+        // 현재 금액을 조회합니다.
+        int currentPoint = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+
+        // 만료 처리할 적립금을 생성합니다.
+        int maxTestPointAmount = TEST_POINT_AMOUNT;
+        int amountPointEarn1 = Math.toIntExact(Math.round(Math.random() * maxTestPointAmount));
+        int amountPointEarn2 = Math.toIntExact(Math.round(Math.random() * maxTestPointAmount));
+
+        // 만료 처리할 적립금을 생성합니다.
+        MemberPointEvent event = memberPointService.earnMemberPoint(getTestMemberPointCreateRequest(TEST_MEMBER_ID, amountPointEarn1));
+
+        // 만료 처리할 적립금의 일부를 사용합니다.
+        LocalDateTime past = LocalDateTime.now().minusMonths(5);
+        int amountPointUse = Math.toIntExact(Math.round(Math.random() * amountPointEarn1));
+
+        MemberPointEvent use = memberPointService.useMemberPoint(getTestMemberPointUseRequest(TEST_MEMBER_ID, amountPointUse));
+
+        // 만료 처리할 적립금의 만료 시점을 과거로 설정합니다.
+        memberPointService.changeExpireAt(event.getId(), past);
+
+        // 만료 처리되지 않을 적립금을 생성합니다.
+        MemberPointEvent event2 = memberPointService.earnMemberPoint(getTestMemberPointCreateRequest(TEST_MEMBER_ID, amountPointEarn2));
+
+        // 모든 엔티티들을 flush합니다.
+        em.flush();
+
+        // when
+        memberPointService.expireMemberPoint();
+
+        // then
+        MemberPointEventSearch search = getMemberPointEventSearch(TEST_MEMBER_ID, 0, 10);
+        Page<MemberPointEvent> memberPointEvents = memberPointService.getMemberPointEvents(search);
+        List<MemberPointDetail> memberPointDetails = memberPointEvents.stream().flatMap(ev -> ev.getMemberPointDetails().stream()).toList();
+        memberPointEvents.forEach(ev->{
+            log.info("--------------------");
+            log.info("ev.getAmount(): {}", ev.getAmount());
+            log.info("ev.getExpireAt(): {}", ev.getExpireAt());
+            log.info("ev.getCreatedAt(): {}", ev.getCreatedAt());
+            log.info("ev.getType(): {}", ev.getType());
+            log.info("--------------------");
+        });
+        memberPointEvents.forEach(ev->{
+            ev.getMemberPointDetails().forEach(d->{
+                log.info("--------------------");
+                log.info("d.getMemberPointDetailGroupId(): {}", d.getMemberPointDetailGroupId());
+                log.info("d.getAmount(): {}", d.getAmount());
+                log.info("d.getExpireAt(): {}", d.getExpireAt());
+                log.info("d.getCreatedAt(): {}", d.getCreatedAt());
+                log.info("d.getMemberPointEvent().getType(): {}", d.getMemberPointEvent().getType());
+                log.info("--------------------");
+            });
+        });
+        int expectedPoint = currentPoint + amountPointEarn2;
+        int resultPoint = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+        log.info("expectedPoint: {}", expectedPoint);
+        log.info("resultPoint: {}", resultPoint);
+        assertEquals(expectedPoint, resultPoint);
+    }
+
 
 
 
@@ -417,4 +497,5 @@ class MemberPointServiceTest {
         search.setSize(size);
         return search;
     }
+
 }

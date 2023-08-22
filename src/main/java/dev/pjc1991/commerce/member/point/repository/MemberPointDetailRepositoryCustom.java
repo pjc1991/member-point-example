@@ -184,14 +184,16 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
                         QMemberPointDetail.memberPointDetail.memberPointDetailGroupId,
                         QMemberPointDetail.memberPointDetail.amount.sum(),
                         QMemberPointDetail.memberPointDetail.expireAt.min(),
-                        QMemberPointDetail.memberPointDetail.createdAt.min()))
+                        QMemberPointDetail.memberPointDetail.createdAt.min(),
+                        QMemberPointDetail.memberPointDetail.memberPointEvent.memberId.max()
+                ))
 
-                .where(
-                        QMemberPointDetail.memberPointDetail.expireAt.before(LocalDateTime.now())
-                )
 
                 .groupBy(QMemberPointDetail.memberPointDetail.memberPointDetailGroupId)
-                .having(QMemberPointDetail.memberPointDetail.amount.sum().gt(0))
+                .having(
+                        QMemberPointDetail.memberPointDetail.amount.sum().gt(0),
+                        QMemberPointDetail.memberPointDetail.expireAt.min().before(LocalDateTime.now())
+                )
                 .orderBy(
                         QMemberPointDetail.memberPointDetail.createdAt.min().asc()
                         , QMemberPointDetail.memberPointDetail.memberPointDetailGroupId.asc()

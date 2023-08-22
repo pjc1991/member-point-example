@@ -4,6 +4,8 @@ import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.dto.*;
 import org.springframework.data.domain.Page;
 
+import java.time.LocalDateTime;
+
 
 public interface MemberPointService {
 
@@ -81,6 +83,11 @@ public interface MemberPointService {
      * 회원 적립금 만료 처리
      */
     void expireMemberPoint();
+
+    /**
+     * 회원 적립금 만료 시간 변경 (테스트 전용)
+     */
+    void changeExpireAt(long memberPointEventId, LocalDateTime expireAt);
 
     /**
      * 회원 적립금 일치성 검사 (테스트)
