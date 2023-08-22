@@ -216,6 +216,9 @@ public class MemberPointServiceImpl implements MemberPointService {
 
             MemberPointDetail expireDetail = MemberPointDetail.expireMemberPointDetail(memberPointDetailRemain, expireEvent);
             memberPointDetailRepository.save(expireDetail);
+
+            // 회원 적립금 상세 내역의 환불 그룹 아이디를 업데이트합니다.
+            expireDetail.updateRefundGroupIdSelf();
         }
     }
 
