@@ -7,7 +7,6 @@ import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
 import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
 import dev.pjc1991.commerce.member.point.repository.MemberPointDetailRepository;
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepository;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -21,8 +20,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.util.StopWatch;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
