@@ -228,6 +228,10 @@ public class MemberPointServiceImpl implements MemberPointService {
      * 적립금 만료 시점을 지난 적립금 상세 내역을 조회하고, 적립금 만료 이벤트와 적립금 만료 상세 내역을 생성합니다.
      */
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "memberPointEvent", allEntries = true),
+            @CacheEvict(value = "memberPointTotal", allEntries = true)
+    })
     public void expireMemberPoint() {
         // 적립금 만료 시점을 지난 적립금 상세 내역을 조회합니다.
         List<MemberPointDetailRemain> memberPointDetails = memberPointDetailRepositoryCustom.getMemberPointDetailExpired();
