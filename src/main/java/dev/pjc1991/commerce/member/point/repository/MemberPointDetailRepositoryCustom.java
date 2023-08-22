@@ -89,8 +89,6 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
             throw new IllegalArgumentException("memberId 가 null 입니다.");
         }
 
-        QMemberPointDetail memberPointDetail = QMemberPointDetail.memberPointDetail;
-        DateTimePath<LocalDateTime> createdAt = Expressions.dateTimePath(LocalDateTime.class, "createdAt");
 
         /*
          * SELECT
@@ -114,25 +112,24 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
          * LIMIT ?, ?
          */
 
-        QMemberPointDetailRemainCTE cte = new QMemberPointDetailRemainCTE("mpdr");
+
+        QMemberPointDetail memberPointDetail = QMemberPointDetail.memberPointDetail;
         BlazeJPAQuery<MemberPointDetailRemain> query = new BlazeJPAQuery<>(entityManager, cbf)
-                .with(cte, JPQLNextExpressions.select(
-                        JPQLNextExpressions.bind(cte.id, memberPointDetail.memberPointDetailGroupId),
-                        JPQLNextExpressions.bind(cte.remain, memberPointDetail.amount.sum()),
-                        JPQLNextExpressions.bind(cte.createdAt, memberPointDetail.createdAt.min()),
-                        JPQLNextExpressions.bind(cte.expireAt, memberPointDetail.expireAt.min()))
-                        .from(memberPointDetail)
-                        .where(memberPointDetail.memberPointEvent.memberId.eq(search.getMemberId()),
-                                memberPointDetail.expireAt.after(LocalDateTime.now())))
-                .select(Projections.constructor(MemberPointDetailRemain.class,
-                        cte.id,
-                        cte.remain,
-                        cte.createdAt,
-                        cte.expireAt))
-                .from(cte);
+                .select(Projections.constructor(MemberPointDetailRemain.class
+                        , memberPointDetail.memberPointDetailGroupId
+                        , memberPointDetail.amount.sum().as("remain")
+                        , memberPointDetail.expireAt.min().as("expireAt")
+                        , memberPointDetail.createdAt.min().as("createdAt")))
+                .from(memberPointDetail)
+                .innerJoin(memberPointDetail.memberPointEvent)
+                .where(memberPointDetail.memberPointEvent.memberId.eq(search.getMemberId())
+                        , memberPointDetail.expireAt.after(LocalDateTime.now()))
+                .groupBy(memberPointDetail.memberPointDetailGroupId)
+                .having(memberPointDetail.amount.sum().gt(0))
+                .orderBy(memberPointDetail.createdAt.asc(), memberPointDetail.id.asc())
+                .limit(search.getSize()).offset(search.getOffset());
 
         List<MemberPointDetailRemain> result = query.fetch();
-        result.forEach(row -> log.info("row: {}", row));
         return result;
     }
 
