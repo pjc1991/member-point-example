@@ -265,9 +265,11 @@ public class MemberPointServiceImpl implements MemberPointService {
     private int clearMemberPointUse(MemberPointEvent useEvent, MemberPointDetailSearch search, int useAmountRemain, List<MemberPointDetail> memberPointDetails) {
         // 현재 페이지의 적립금 상세 내역을 조회합니다.
         List<MemberPointDetailRemain> memberPointDetailAvailable = memberPointDetailRepositoryCustom.getMemberPointDetailAvailable(search);
-        // 현재 페이지의 적립금 상세 내역이 없다면 예외를 발생시킵니다.
+
+        // 현재 페이지의 적립금 상세 내역이 없다면 다음 페이지를 검색합니다.
         if (memberPointDetailAvailable.isEmpty()) {
-            throw new RuntimeException("적립금이 부족합니다.");
+            search.setPage(search.getPage() + 1);
+            return useAmountRemain;
         }
 
         // 현재 페이지의 적립금 상세 내역을 순회하며 사용하려는 적립금의 잔액을 차감합니다.
@@ -281,6 +283,7 @@ public class MemberPointServiceImpl implements MemberPointService {
             // 잔액이 0이 되면 반복을 종료합니다.
             if (useAmountRemain == 0) break;
         }
+        search.setPage(search.getPage() + 1);
         return useAmountRemain;
     }
 }
