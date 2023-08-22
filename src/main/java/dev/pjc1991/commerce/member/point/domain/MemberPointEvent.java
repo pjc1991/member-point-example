@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -26,6 +27,7 @@ import java.util.Set;
 }
 )
 @Getter
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberPointEvent {
 
@@ -69,6 +71,13 @@ public class MemberPointEvent {
     private LocalDateTime createdAt;
 
     /**
+     * 회원 적립금 이벤트 종류
+     */
+    @Column(name = "TYPE", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private MemberPointEventType type;
+
+    /**
      * 회원 적립금 만료 기간 (개월)
      * 이 기간이 지나면 적립금을 만료 처리합니다.
      */
@@ -96,6 +105,7 @@ public class MemberPointEvent {
         memberPointEvent.amount = memberPointCreate.getAmount();
         memberPointEvent.createdAt = LocalDateTime.now();
         memberPointEvent.expireAt = LocalDateTime.of(memberPointEvent.createdAt.plusMonths(MEMBER_POINT_EXPIRE_MONTH).toLocalDate(), LocalTime.MAX);
+        memberPointEvent.type = MemberPointEventType.EARN;
         return memberPointEvent;
     }
 
@@ -116,6 +126,7 @@ public class MemberPointEvent {
         memberPointEvent.createdAt = LocalDateTime.now();
         memberPointEvent.expireAt = null;
         // 사용은 만료 시점이 없습니다.
+        memberPointEvent.type = MemberPointEventType.USE;
 
         return memberPointEvent;
     }
@@ -143,7 +154,36 @@ public class MemberPointEvent {
         memberPointEvent.createdAt = LocalDateTime.now();
         // 만료는 현재 시점으로 표현합니다. 검색 쿼리에서 만료된 적립금을 제외하기 위함입니다.
         memberPointEvent.expireAt = LocalDateTime.now();
+        memberPointEvent.type = MemberPointEventType.EXPIRE;
 
         return memberPointEvent;
+    }
+
+    /**
+     * 회원 적립금의 만료 시점을 변경합니다.
+     * 테스트 코드에서만 사용합니다.
+     * @param localDateTime 변경할 만료 시점
+     */
+    public void setExpireAt(LocalDateTime localDateTime) {
+        log.warn("회원 적립금 이벤트의 만료 시점을 변경합니다. 이 메소드는 테스트 코드에서만 사용합니다. 변경할 만료 시점: {}", localDateTime);
+        this.expireAt = localDateTime;
+        this.getMemberPointDetails().forEach(memberPointDetail -> memberPointDetail.setExpireAt(localDateTime));
+    }
+
+    public enum MemberPointEventType {
+
+        EARN("적립"),
+        USE("사용"),
+        EXPIRE("만료"),
+        REFUND("환불"),
+        CANCEL("사용 취소");
+
+        private final String description;
+
+        MemberPointEventType(String description) {
+            this.description = description;
+        }
+
+
     }
 }

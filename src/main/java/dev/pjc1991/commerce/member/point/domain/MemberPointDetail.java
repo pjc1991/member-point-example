@@ -3,6 +3,7 @@ package dev.pjc1991.commerce.member.point.domain;
 import dev.pjc1991.commerce.member.point.dto.MemberPointDetailRemain;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
         @Index(name = "IDX_MEMBER_POINT_DETAIL_EXPIRE_AT", columnList = "EXPIRE_AT")
 }
 )
+@Slf4j
 public class MemberPointDetail {
 
     /**
@@ -158,8 +160,8 @@ public class MemberPointDetail {
 
         memberPointDetailExpire.memberPointDetailGroupId = remain.getMemberPointDetailGroupId();
         memberPointDetailExpire.amount = -remain.getRemain();
-        memberPointDetailExpire.createdAt = LocalDateTime.now();
-        memberPointDetailExpire.expireAt = LocalDateTime.now();
+        memberPointDetailExpire.createdAt = expireEvent.getCreatedAt();
+        memberPointDetailExpire.expireAt = expireEvent.getExpireAt();
 
         memberPointDetailExpire.memberPointEvent = expireEvent;
         expireEvent.getMemberPointDetails().add(memberPointDetailExpire);
@@ -183,5 +185,16 @@ public class MemberPointDetail {
     public void updateRefundGroupIdSelf() {
         // 환불 대상이 되는 상세 내역의 ID를 환불 대상 ID로 설정합니다.
         this.memberPointDetailRefundId = this.id;
+    }
+
+    /**
+     * 회원 적립금의 만료 시점을 변경합니다.
+     * 테스트 코드에서만 사용합니다.
+     * MemberPointEvent 에서 사용하기 위해 protected 로 설정합니다.
+     * @param localDateTime 변경할 만료 시점
+     */
+    protected void setExpireAt(LocalDateTime localDateTime) {
+        log.warn("회원 적립금 상세의 만료 시점을 변경합니다. 변경할 만료 시점: {}", localDateTime);
+        this.expireAt = localDateTime;
     }
 }

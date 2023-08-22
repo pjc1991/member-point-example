@@ -21,6 +21,12 @@ public class MemberPointEventRepositoryCustom extends QuerydslRepositorySupport 
     }
 
 
+    /**
+     * 회원 적립금 적립/사용 내역 조회
+     *
+     * @param search 페이지 검색을 위한 검색 조건
+     * @return page 회원 적립금 적립/사용 내역
+     */
     public Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search) {
         QMemberPointEvent memberPointEvent = QMemberPointEvent.memberPointEvent;
 
@@ -37,8 +43,10 @@ public class MemberPointEventRepositoryCustom extends QuerydslRepositorySupport 
         );
 
         // 페이징 처리를 합니다.
-        query.limit(search.getSize());
-        query.offset(search.getOffset());
+        if (search.isPaging()) {
+            query.limit(search.getSize());
+            query.offset(search.getOffset());
+        }
 
         List<MemberPointEvent> list = query.fetch();
         long totalCount = query.fetchCount();
