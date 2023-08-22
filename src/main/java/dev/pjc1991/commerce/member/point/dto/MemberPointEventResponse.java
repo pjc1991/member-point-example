@@ -13,6 +13,7 @@ public class MemberPointEventResponse {
     private Long id;
     private Integer memberId;
     private Integer amount;
+    private String type;
     private LocalDateTime createdAt;
     private LocalDateTime expireAt;
 
@@ -22,5 +23,6 @@ public class MemberPointEventResponse {
         this.amount = entity.getAmount();
         this.createdAt = entity.getCreatedAt();
         this.expireAt = entity.getExpireAt();
+        this.type = entity.getType().name();
     }
 }
