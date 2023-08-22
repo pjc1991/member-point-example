@@ -410,9 +410,6 @@ class MemberPointServiceTest {
         // 만료 처리되지 않을 적립금을 생성합니다.
         MemberPointEvent event2 = memberPointService.earnMemberPoint(getTestMemberPointCreateRequest(TEST_MEMBER_ID, amountPointEarn2));
 
-        // 모든 엔티티들을 flush합니다.
-        em.flush();
-
         // when
         memberPointService.expireMemberPoint();
 
@@ -420,25 +417,7 @@ class MemberPointServiceTest {
         MemberPointEventSearch search = getMemberPointEventSearch(TEST_MEMBER_ID, 0, 10);
         Page<MemberPointEvent> memberPointEvents = memberPointService.getMemberPointEvents(search);
         List<MemberPointDetail> memberPointDetails = memberPointEvents.stream().flatMap(ev -> ev.getMemberPointDetails().stream()).toList();
-        memberPointEvents.forEach(ev->{
-            log.info("--------------------");
-            log.info("ev.getAmount(): {}", ev.getAmount());
-            log.info("ev.getExpireAt(): {}", ev.getExpireAt());
-            log.info("ev.getCreatedAt(): {}", ev.getCreatedAt());
-            log.info("ev.getType(): {}", ev.getType());
-            log.info("--------------------");
-        });
-        memberPointEvents.forEach(ev->{
-            ev.getMemberPointDetails().forEach(d->{
-                log.info("--------------------");
-                log.info("d.getMemberPointDetailGroupId(): {}", d.getMemberPointDetailGroupId());
-                log.info("d.getAmount(): {}", d.getAmount());
-                log.info("d.getExpireAt(): {}", d.getExpireAt());
-                log.info("d.getCreatedAt(): {}", d.getCreatedAt());
-                log.info("d.getMemberPointEvent().getType(): {}", d.getMemberPointEvent().getType());
-                log.info("--------------------");
-            });
-        });
+
         int expectedPoint = currentPoint + amountPointEarn2;
         int resultPoint = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
         log.info("expectedPoint: {}", expectedPoint);
