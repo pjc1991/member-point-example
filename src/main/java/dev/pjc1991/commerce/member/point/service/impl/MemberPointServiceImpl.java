@@ -172,7 +172,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         useEvent = memberPointEventRepository.save(useEvent);
 
         // 회원 적립금 상세 내역을 생성합니다.
-        List<MemberPointDetail> memberPointDetails = createMemberPointDetails(memberPointUseRequest, useEvent);
+        List<MemberPointDetail> memberPointDetails = createMemberPointDetailUse(memberPointUseRequest, useEvent);
 
         // 회원 적립금 상세 내역을 저장합니다.
         memberPointDetailRepository.saveAll(memberPointDetails);
@@ -302,7 +302,15 @@ public class MemberPointServiceImpl implements MemberPointService {
 
 }
 
-    private List<MemberPointDetail> createMemberPointDetails(MemberPointUseRequest memberPointUseRequest, MemberPointEvent useEvent) {
+    /**
+     * 회원 적립금 사용 상세 내역 생성
+     * 적립금을 사용할 떄, 적립금 상세 내역을 생성합니다.
+     * 적립된 적립금을 선입선출로 사용해야 합니다.
+     * @param memberPointUseRequest 적립금 사용 요청
+     * @param useEvent 적립금 사용 이벤트
+     * @return 생성된 적립금 상세 내역 리스트
+     */
+    private List<MemberPointDetail> createMemberPointDetailUse(MemberPointUseRequest memberPointUseRequest, MemberPointEvent useEvent) {
         // 적립금 상세 조회를 위해 사용할 검색 조건입니다.
         MemberPointDetailSearch search = new MemberPointDetailSearch();
         search.setSize(100);
