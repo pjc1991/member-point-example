@@ -34,6 +34,15 @@ public class MemberPointServiceImpl implements MemberPointService {
 
     private final MemberPointService self;
 
+    /**
+     * 생성자 주입 방식을 사용합니다.
+     * 자가 주입을 위해 @Lazy 를 사용합니다.
+     * @param memberPointEventRepository
+     * @param memberPointEventRepositoryCustom
+     * @param memberPointDetailRepository
+     * @param memberPointDetailRepositoryCustom
+     * @param self
+     */
     @Lazy
     public MemberPointServiceImpl(
             MemberPointEventRepository memberPointEventRepository
