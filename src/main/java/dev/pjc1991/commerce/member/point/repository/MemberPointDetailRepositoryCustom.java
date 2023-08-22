@@ -36,10 +36,10 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
     }
 
     /**
-     회원의 적립금 총합을 조회합니다.
+     * 회원의 적립금 총합을 조회합니다.
      *
-     @param memberId 회원 아이디
-     @return 회원의 적립금 총합
+     * @param memberId 회원 아이디
+     * @return 회원의 적립금 총합
      */
     public int getMemberPointTotal(int memberId) {
         // 적립금 총합을 계산하기 위해 적립금 상세 내역에서 회원 아이디로 조회합니다.
@@ -49,7 +49,7 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
                 .innerJoin(memberPointDetail.memberPointEvent)
                 .select(memberPointDetail.amount.sum())
                 .where(
-                        memberPointDetail.memberPointEvent.memberId.eq(memberId), 
+                        memberPointDetail.memberPointEvent.memberId.eq(memberId),
                         memberPointDetail.expireAt.after(LocalDateTime.now())
                 );
 
@@ -78,10 +78,10 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
     }
 
     /**
-     사용할 수 있는 가장 오래된 적립금 상세 내역부터 조회합니다.
+     * 사용할 수 있는 가장 오래된 적립금 상세 내역부터 조회합니다.
      *
-     @param search 회원 적립금 상세 내역 조회 파라메터를 담은 오브젝트입니다.
-     @return 회원 적립금 상세 내역을 담은 페이지 오브젝트입니다.
+     * @param search 회원 적립금 상세 내역 조회 파라메터를 담은 오브젝트입니다.
+     * @return 회원 적립금 상세 내역을 담은 페이지 오브젝트입니다.
      */
     public List<MemberPointDetailRemain> getMemberPointDetailAvailable(MemberPointDetailSearch search) {
         // 적립금 상세 내역에서 회원 아이디로 조회합니다.
@@ -170,9 +170,34 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
         return query.fetch();
     }
 
+    /**
+     * 만료된 적립금 상세 내역을 조회합니다.
+     *
+     * @return
+     */
     public List<MemberPointDetailRemain> getMemberPointDetailExpired() {
-        // 구현 예정
-        return null;
+        JPQLQuery<MemberPointDetailRemain> query = from(QMemberPointDetail.memberPointDetail)
+
+                .innerJoin(QMemberPointDetail.memberPointDetail.memberPointEvent)
+
+                .select(Projections.constructor(MemberPointDetailRemain.class,
+                        QMemberPointDetail.memberPointDetail.memberPointDetailGroupId,
+                        QMemberPointDetail.memberPointDetail.amount.sum(),
+                        QMemberPointDetail.memberPointDetail.expireAt.min(),
+                        QMemberPointDetail.memberPointDetail.createdAt.min()))
+
+                .where(
+                        QMemberPointDetail.memberPointDetail.expireAt.before(LocalDateTime.now())
+                )
+
+                .groupBy(QMemberPointDetail.memberPointDetail.memberPointDetailGroupId)
+                .having(QMemberPointDetail.memberPointDetail.amount.sum().gt(0))
+                .orderBy(
+                        QMemberPointDetail.memberPointDetail.createdAt.min().asc()
+                        , QMemberPointDetail.memberPointDetail.memberPointDetailGroupId.asc()
+                );
+
+        return query.fetch();
     }
 
     public List<MemberPointDetailRemain> getMemberPointRemains(int memberId) {
@@ -188,7 +213,7 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
                                 memberPointDetail.expireAt.min(),
                                 memberPointDetail.createdAt.min(),
                                 memberPointDetail.memberPointEvent.memberId.max() // 회원 아이디
-                                ))
+                        ))
                         .where(
                                 memberPointDetail.memberPointEvent.memberId.eq(memberId),
                                 memberPointDetail.expireAt.after(LocalDateTime.now())
