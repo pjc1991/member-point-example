@@ -219,6 +219,50 @@ public class MemberPointServiceImpl implements MemberPointService {
         }
     }
 
+    /**
+     * 회원 적립금 일치성 검사 (테스트)
+     * 해당 회원의 적립금이 선입선출 형태로 사용되었는지 확인합니다.
+     * 만약, 적립금이 선입선출 형태로 사용되지 않았다면 예외를 발생시킵니다.
+     *
+     * @param memberId 회원 아이디
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public void checkMemberPoint(int memberId) {
+        // 해당 회원의 적립금 상세 그룹을 조회합니다.
+        List<MemberPointDetailRemain> memberPointDetails = memberPointDetailRepositoryCustom.getMemberPointRemains(memberId);
+        if (memberPointDetails.isEmpty()) {
+            log.info("적립금이 없습니다.");
+            return;
+        };
+
+        // 사용 금액이 0이 아닌 가장 최신 적립금 상세 그룹을 찾습니다.
+        MemberPointDetailRemain LatestUsed = memberPointDetails.get(0);
+
+        for (MemberPointDetailRemain row : memberPointDetails) {
+            if(row.getUsed() != 0 && row.getCreatedAt().isAfter(LatestUsed.getCreatedAt())) {
+                LatestUsed = row;
+            }
+        }
+
+        // 목록을 순회하면서, 선입선출 위반사항이 있는지 확인합니다.
+        for (MemberPointDetailRemain row : memberPointDetails) {
+            // 만약 가장 최신 적립금 상세 그룹의 생성 시점보다 이전에 생성된 적립금 상세 그룹이고, 잔액이 0이 아니라면 예외를 발생시킵니다.
+            if (row.getCreatedAt().isBefore(LatestUsed.getCreatedAt()) && row.getRemain() != 0) {
+                log.error("적립금이 선입선출 형태로 사용되지 않았습니다.");
+                log.error("row.getMemberPointDetailGroupId() : {}", row.getMemberPointDetailGroupId());
+                log.error("row.getCreatedAt() : {}", row.getCreatedAt());
+                log.error("row.getRemain() : {}", row.getRemain());
+                log.error("LatestUsed.getMemberPointDetailGroupId() : {}", LatestUsed.getMemberPointDetailGroupId());
+                log.error("LatestUsed.getCreatedAt() : {}", LatestUsed.getCreatedAt());
+
+                throw new RuntimeException("적립금이 선입선출 형태로 사용되지 않았습니다.");
+            }
+        }
+        log.info("적립금이 선입선출 형태로 사용되었습니다.");
+
+}
+
     private List<MemberPointDetail> createMemberPointDetails(MemberPointUseRequest memberPointUseRequest, MemberPointEvent useEvent) {
         // 적립금 상세 조회를 위해 사용할 검색 조건입니다.
         MemberPointDetailSearch search = new MemberPointDetailSearch();

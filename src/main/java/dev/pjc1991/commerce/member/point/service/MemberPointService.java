@@ -82,4 +82,11 @@ public interface MemberPointService {
      */
     void expireMemberPoint();
 
+    /**
+     * 회원 적립금 일치성 검사 (테스트)
+     * 해당 회원의 적립금이 선입선출 형태로 사용되었는지 확인합니다.
+     * @param memberId 회원 아이디
+     */
+    void checkMemberPoint(int memberId);
+
 }
