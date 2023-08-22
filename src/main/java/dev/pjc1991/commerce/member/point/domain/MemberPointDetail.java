@@ -158,8 +158,8 @@ public class MemberPointDetail {
 
         memberPointDetailExpire.memberPointDetailGroupId = remain.getMemberPointDetailGroupId();
         memberPointDetailExpire.amount = -remain.getRemain();
-        memberPointDetailExpire.createdAt = LocalDateTime.now();
-        memberPointDetailExpire.expireAt = LocalDateTime.now();
+        memberPointDetailExpire.createdAt = expireEvent.getCreatedAt();
+        memberPointDetailExpire.expireAt = expireEvent.getExpireAt();
 
         memberPointDetailExpire.memberPointEvent = expireEvent;
         expireEvent.getMemberPointDetails().add(memberPointDetailExpire);
