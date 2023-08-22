@@ -1,6 +1,7 @@
 package dev.pjc1991.commerce.member.point.domain;
 
 import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
+import dev.pjc1991.commerce.member.point.dto.MemberPointDetailRemain;
 import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,10 +20,10 @@ import java.util.Set;
 @Table(
         name = "MEMBER_POINT_EVENT"
         , indexes = {
-            @Index(name = "IDX_MEMBER_POINT_EVENT_MEMBER_ID", columnList = "MEMBER_ID"),
-            @Index(name = "IDX_MEMBER_POINT_EVENT_CREATED_AT", columnList = "CREATED_AT"),
-            @Index(name = "IDX_MEMBER_POINT_EVENT_EXPIRE_AT", columnList = "EXPIRE_AT")
-        }
+        @Index(name = "IDX_MEMBER_POINT_EVENT_MEMBER_ID", columnList = "MEMBER_ID"),
+        @Index(name = "IDX_MEMBER_POINT_EVENT_CREATED_AT", columnList = "CREATED_AT"),
+        @Index(name = "IDX_MEMBER_POINT_EVENT_EXPIRE_AT", columnList = "EXPIRE_AT")
+}
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -93,7 +95,7 @@ public class MemberPointEvent {
         memberPointEvent.memberId = memberPointCreate.getMemberId();
         memberPointEvent.amount = memberPointCreate.getAmount();
         memberPointEvent.createdAt = LocalDateTime.now();
-        memberPointEvent.expireAt = memberPointEvent.createdAt.plusMonths(MEMBER_POINT_EXPIRE_MONTH);
+        memberPointEvent.expireAt = LocalDateTime.of(memberPointEvent.createdAt.plusMonths(MEMBER_POINT_EXPIRE_MONTH).toLocalDate(), LocalTime.MAX);
         return memberPointEvent;
     }
 
@@ -114,6 +116,33 @@ public class MemberPointEvent {
         memberPointEvent.createdAt = LocalDateTime.now();
         memberPointEvent.expireAt = null;
         // 사용은 만료 시점이 없습니다.
+
+        return memberPointEvent;
+    }
+
+    /**
+     * 회원 적립금 만료 이벤트를 생성합니다.
+     *
+     * @param remain 만료될 회원 적립금 상세 내역 조회 결과
+     * @return 회원 적립금 만료 이벤트
+     */
+    public static MemberPointEvent expireMemberPoint(MemberPointDetailRemain remain) {
+
+        if (remain == null) {
+            throw new RuntimeException("만료될 회원 적립금 상세 내역이 null입니다.");
+        }
+
+        if (remain.getExpireAt().isAfter(LocalDateTime.now())) {
+            throw new RuntimeException("만료될 회원 적립금 상세 내역의 만료 시점이 현재 시점보다 미래입니다.");
+        }
+
+        MemberPointEvent memberPointEvent = new MemberPointEvent();
+        memberPointEvent.memberId = remain.getMemberId();
+        memberPointEvent.amount = -remain.getRemain();
+        // 만료는 사용으로 표현합니다.
+        memberPointEvent.createdAt = LocalDateTime.now();
+        // 만료는 현재 시점으로 표현합니다. 검색 쿼리에서 만료된 적립금을 제외하기 위함입니다.
+        memberPointEvent.expireAt = LocalDateTime.now();
 
         return memberPointEvent;
     }

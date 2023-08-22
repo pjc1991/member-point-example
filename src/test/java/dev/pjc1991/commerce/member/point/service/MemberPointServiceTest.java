@@ -35,6 +35,7 @@ class MemberPointServiceTest {
     void tearDown() {
         // 테스트가 끝난 후에는 캐시를 비웁니다.
         memberPointService.clearCache(TEST_MEMBER_ID);
+        memberPointService.checkMemberPoint(TEST_MEMBER_ID);
     }
 
     /**
@@ -85,7 +86,7 @@ class MemberPointServiceTest {
         System.out.println(stopWatch.prettyPrint());
 
         // 적립금 합계가 예상한 값과 같은지 확인합니다.
-        log.info("expected point: {}", testPointAmount);
+        log.info("expected point: {}", expectedPoint);
         log.info("result point: {}", result);
 
         assertEquals(expectedPoint, result);
