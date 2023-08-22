@@ -80,7 +80,7 @@ public interface MemberPointService {
      *
      * @param memberId 회원 아이디
      */
-    void clearCache(int memberId);
+    void clearMemberPointTotalCache(int memberId);
 
     /**
      * 회원 적립금 만료 처리

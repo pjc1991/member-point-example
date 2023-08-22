@@ -202,7 +202,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @CacheEvict(value = "memberPointTotal", key = "#memberId")
-    public void clearCache(int memberId) {
+    public void clearMemberPointTotalCache(int memberId) {
         return;
     }
 

@@ -1,6 +1,5 @@
 package dev.pjc1991.commerce.member.point.service;
 
-import dev.pjc1991.commerce.member.point.domain.MemberPointDetail;
 import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
@@ -45,7 +44,7 @@ class MemberPointServiceTest {
     @AfterEach
     void tearDown() {
         // 테스트가 끝난 후에는 캐시를 비웁니다.
-        memberPointService.clearCache(TEST_MEMBER_ID);
+        memberPointService.clearMemberPointTotalCache(TEST_MEMBER_ID);
         memberPointService.checkMemberPoint(TEST_MEMBER_ID);
     }
 
