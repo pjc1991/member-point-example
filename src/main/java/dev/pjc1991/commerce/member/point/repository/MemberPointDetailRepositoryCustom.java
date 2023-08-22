@@ -136,4 +136,8 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
         return result;
     }
 
+    public List<MemberPointDetailRemain> getMemberPointDetailExpired() {
+        // 구현 예정
+        return null;
+    }
 }

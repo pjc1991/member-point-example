@@ -21,6 +21,9 @@ public class MemberPointDetailRemain {
     // 회원 적립금 적립 시점
     private LocalDateTime createdAt;
 
+    // 회원 아이디
+    private Integer memberId;
+
     public MemberPointDetailRemain(
             Long MemberPointDetailGroupId,
             Integer remain,

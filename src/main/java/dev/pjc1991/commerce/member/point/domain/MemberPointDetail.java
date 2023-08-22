@@ -106,6 +106,13 @@ public class MemberPointDetail {
 
     }
 
+    /**
+     * 회원 적립금 사용 발생에 대한 상세 내역을 생성합니다.
+     * @param useEvent 회원 적립금 사용 이벤트
+     * @param remain 사용 가능한 회원 적립금 상세 내역
+     * @param useAmount 사용 금액
+     * @return
+     */
     public static MemberPointDetail useMemberPointDetail(MemberPointEvent useEvent, MemberPointDetailRemain remain, int useAmount) {
         if (useEvent == null) {
             throw new IllegalArgumentException("회원 적립금 사용 이벤트가 null 입니다.");
@@ -120,11 +127,44 @@ public class MemberPointDetail {
         memberPointDetail.memberPointDetailGroupId = remain.getMemberPointDetailGroupId();
         memberPointDetail.amount = -useAmount;
         memberPointDetail.createdAt = LocalDateTime.now();
-        memberPointDetail.expireAt = remain.getExpireAt();
+        memberPointDetail.expireAt = LocalDateTime.now();
         useEvent.getMemberPointDetails().add(memberPointDetail);
 
         return memberPointDetail;
 
+
+    }
+
+    /**
+     * 회원 적립금 만료 발생에 대한 상세 내역을 생성합니다.
+     * @param remain 만료될 회원 적립금 상세 내역
+     * @param expireEvent 회원 적립금 만료 이벤트
+     * @return 회원 적립금 만료 상세 내역
+     */
+    public static MemberPointDetail expireMemberPointDetail(MemberPointDetailRemain remain, MemberPointEvent expireEvent) {
+        if (remain == null) {
+            throw new IllegalArgumentException("회원 적립금 상세 내역이 null 입니다.");
+        }
+
+        if (expireEvent == null) {
+            throw new IllegalArgumentException("회원 적립금 만료 이벤트가 null 입니다.");
+        }
+
+        if (remain.getExpireAt().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("회원 적립금 상세 내역의 만료 시점이 현재 시점보다 미래입니다.");
+        }
+
+        MemberPointDetail memberPointDetailExpire = new MemberPointDetail();
+
+        memberPointDetailExpire.memberPointDetailGroupId = remain.getMemberPointDetailGroupId();
+        memberPointDetailExpire.amount = -remain.getRemain();
+        memberPointDetailExpire.createdAt = LocalDateTime.now();
+        memberPointDetailExpire.expireAt = LocalDateTime.now();
+
+        memberPointDetailExpire.memberPointEvent = expireEvent;
+        expireEvent.getMemberPointDetails().add(memberPointDetailExpire);
+
+        return memberPointDetailExpire;
 
     }
 
@@ -134,8 +174,7 @@ public class MemberPointDetail {
     public void updateGroupIdSelf() {
         // 총합을 계산할 때 이 상세내역 기준으로 계산할 수 있도록 자신의 ID를 그룹 ID로 설정합니다.
         this.memberPointDetailGroupId = this.id;
-        // 환불 대상이 되는 상세 내역의 ID를 환불 대상 ID로 설정합니다.
-        this.memberPointDetailRefundId = this.id;
+        // 적립은 환불의 대상이 되지 않으므로 환불 대상 ID는 null로 설정합니다.
     }
 
     /**
