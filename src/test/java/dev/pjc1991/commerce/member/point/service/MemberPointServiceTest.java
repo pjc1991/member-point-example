@@ -31,20 +31,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class MemberPointServiceTest {
 
     private static final Logger log = LoggerFactory.getLogger(MemberPointServiceTest.class);
-
     private static final int TEST_MEMBER_ID = 1;
-
     private static final int TEST_POINT_AMOUNT = 10000;
 
     @Autowired
-    EntityManager em;
-
-    @Autowired
     MemberPointEventRepository memberPointEventRepository;
-
     @Autowired
     MemberPointDetailRepository memberPointDetailRepository;
-
     @Autowired
     MemberPointService memberPointService;
 
