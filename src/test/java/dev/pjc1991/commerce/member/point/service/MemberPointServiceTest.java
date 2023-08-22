@@ -35,6 +35,7 @@ class MemberPointServiceTest {
     void tearDown() {
         // 테스트가 끝난 후에는 캐시를 비웁니다.
         memberPointService.clearCache(TEST_MEMBER_ID);
+        memberPointService.checkMemberPoint(TEST_MEMBER_ID);
     }
 
     /**
