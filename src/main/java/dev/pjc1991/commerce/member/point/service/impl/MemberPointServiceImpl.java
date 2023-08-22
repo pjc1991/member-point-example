@@ -148,7 +148,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 사용 내역 (MemberPointEvent)
      */
     @Override
-    @CacheEvict(value = "memberPointTotal", key = "#memberPointUseRequest.getMemberId()")
+    @CacheEvict(value = "memberPointTotal", key = "#memberPointUseRequest.memberId")
     public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUseRequest) {
         // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
         int memberPointTotal = self.getMemberPointTotal(memberPointUseRequest.getMemberId());
@@ -181,7 +181,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @return 회원 적립금 사용 내역 DTO (MemberPointEventResponse)
      */
     @Override
-    @CacheEvict(value = "memberPointTotal", key = "#memberPointUse.getMemberId()")
+    @CacheEvict(value = "memberPointTotal", key = "#memberPointUse.memberId")
     public MemberPointEventResponse useMemberPointResponse(MemberPointUseRequest memberPointUse) {
         return new MemberPointEventResponse(useMemberPoint(memberPointUse));
     }

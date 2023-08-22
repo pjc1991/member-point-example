@@ -1,13 +1,19 @@
 package dev.pjc1991.commerce.member.point.repository;
 
+import com.blazebit.persistence.CriteriaBuilderFactory;
+import com.blazebit.persistence.querydsl.BlazeJPAQuery;
+import com.blazebit.persistence.querydsl.JPQLNextExpressions;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPQLQuery;
 import dev.pjc1991.commerce.member.point.domain.MemberPointDetail;
 import dev.pjc1991.commerce.member.point.domain.QMemberPointDetail;
+import dev.pjc1991.commerce.member.point.domain.QMemberPointDetailRemainCTE;
 import dev.pjc1991.commerce.member.point.dto.MemberPointDetailRemain;
 import dev.pjc1991.commerce.member.point.dto.MemberPointDetailSearch;
+import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 
@@ -15,10 +21,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
+@Slf4j
 public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport {
 
-    public MemberPointDetailRepositoryCustom() {
+    private final EntityManager entityManager;
+    private final CriteriaBuilderFactory cbf;
+
+    public MemberPointDetailRepositoryCustom(
+            EntityManager entityManager
+            , CriteriaBuilderFactory cbf
+    ) {
         super(MemberPointDetail.class);
+        this.entityManager = entityManager;
+        this.cbf = cbf;
     }
 
     /**
@@ -63,10 +78,9 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
 
     /**
      * 사용할 수 있는 가장 오래된 적립금 상세 내역부터 조회합니다.
-     * @param search
-     * 회원 적립금 상세 내역 조회 파라메터를 담은 오브젝트입니다.
-     * @return
-     * 회원 적립금 상세 내역을 담은 페이지 오브젝트입니다.
+     *
+     * @param search 회원 적립금 상세 내역 조회 파라메터를 담은 오브젝트입니다.
+     * @return 회원 적립금 상세 내역을 담은 페이지 오브젝트입니다.
      */
     public List<MemberPointDetailRemain> getMemberPointDetailAvailable(MemberPointDetailSearch search) {
         // 적립금 상세 내역에서 회원 아이디로 조회합니다.
@@ -100,31 +114,26 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
          * LIMIT ?, ?
          */
 
-        JPQLQuery<MemberPointDetailRemain> query = from(memberPointDetail)
+        QMemberPointDetailRemainCTE cte = new QMemberPointDetailRemainCTE("mpdr");
+        BlazeJPAQuery<MemberPointDetailRemain> query = new BlazeJPAQuery<>(entityManager, cbf)
+                .with(cte, JPQLNextExpressions.select(
+                        JPQLNextExpressions.bind(cte.id, memberPointDetail.memberPointDetailGroupId),
+                        JPQLNextExpressions.bind(cte.remain, memberPointDetail.amount.sum()),
+                        JPQLNextExpressions.bind(cte.createdAt, memberPointDetail.createdAt.min()),
+                        JPQLNextExpressions.bind(cte.expireAt, memberPointDetail.expireAt.min()))
+                        .from(memberPointDetail)
+                        .where(memberPointDetail.memberPointEvent.memberId.eq(search.getMemberId()),
+                                memberPointDetail.expireAt.after(LocalDateTime.now())))
                 .select(Projections.constructor(MemberPointDetailRemain.class,
-                        memberPointDetail.memberPointDetailGroupId,
-                        memberPointDetail.amount.sum().as("remain"),
-                        memberPointDetail.expireAt.min().as("expireAt"),
-                        memberPointDetail.createdAt.min().as(createdAt)
-                ));
+                        cte.id,
+                        cte.remain,
+                        cte.createdAt,
+                        cte.expireAt))
+                .from(cte);
 
-        query.innerJoin(memberPointDetail.memberPointEvent)
-                .on(memberPointDetail.memberPointEvent.id.eq(memberPointDetail.memberPointEvent.id));
-        query.where(
-                memberPointDetail.memberPointEvent.memberId.eq(search.getMemberId())
-                , memberPointDetail.expireAt.after(LocalDateTime.now())
-        );
-
-        query.groupBy(memberPointDetail.memberPointDetailGroupId);
-        query.having(memberPointDetail.amount.sum().gt(0));
-        query.orderBy(createdAt.asc());
-
-        if(search.isPaging()){
-            query.limit(search.getSize());
-            query.offset(search.getOffset());
-        }
-
-        return query.fetch();
+        List<MemberPointDetailRemain> result = query.fetch();
+        result.forEach(row -> log.info("row: {}", row));
+        return result;
     }
 
 }
