@@ -1,5 +1,6 @@
 package dev.pjc1991.commerce.dto;
 
+import dev.pjc1991.commerce.member.point.exception.MemberPointExceptionInterface;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,8 +11,8 @@ public class ErrorResponse {
     private String name;
     private String message;
 
-    public ErrorResponse(Throwable throwable) {
-        this.name = throwable.getClass().getSimpleName();
-        this.message = throwable.getMessage();
+    public ErrorResponse(MemberPointExceptionInterface exception) {
+        this.name = exception.getName();
+        this.message = exception.getMessage();
     }
 }
