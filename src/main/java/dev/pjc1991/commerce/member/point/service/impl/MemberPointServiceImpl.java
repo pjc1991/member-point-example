@@ -100,7 +100,6 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "memberPointEvent", key = "#search.memberId + #search.page + #search.size")
     public Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search) {
         return memberPointEventRepositoryCustom.getMemberPointEvents(search);
     }
@@ -127,7 +126,6 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "memberPointEvent", allEntries = true),
             @CacheEvict(value = "memberPointTotal", key = "#memberPointCreate.memberId")
     })
     public MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate) {
@@ -154,7 +152,6 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "memberPointEvent", allEntries = true),
             @CacheEvict(value = "memberPointTotal", key = "#memberPointCreate.memberId")
     })
     public MemberPointEventResponse earnMemberPointResponse(MemberPointCreateRequest memberPointCreate) {
@@ -171,7 +168,6 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "memberPointEvent", allEntries = true),
             @CacheEvict(value = "memberPointTotal", key = "#memberPointUseRequest.memberId")
     })
     public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUseRequest) {
@@ -207,7 +203,6 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "memberPointEvent", allEntries = true),
             @CacheEvict(value = "memberPointTotal", key = "#memberPointUse.memberId")
     })
     public MemberPointEventResponse useMemberPointResponse(MemberPointUseRequest memberPointUse) {
@@ -220,7 +215,6 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "memberPointEvent", allEntries = true),
             @CacheEvict(value = "memberPointTotal", key = "#memberId")
     })
     public void clearMemberPointTotalCache(long memberId) {
@@ -233,7 +227,6 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "memberPointEvent", allEntries = true),
             @CacheEvict(value = "memberPointTotal", allEntries = true)
     })
     public void expireMemberPoint() {
@@ -263,7 +256,6 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "memberPointEvent", allEntries = true),
             @CacheEvict(value = "memberPointTotal", allEntries = true)
     })
     public void changeExpireAt(long memberPointEventId, LocalDateTime expireAt) {
@@ -297,7 +289,6 @@ public class MemberPointServiceImpl implements MemberPointService {
     @Override
     @Transactional(readOnly = true)
     @Caching(evict = {
-            @CacheEvict(value = "memberPointEvent", allEntries = true),
             @CacheEvict(value = "memberPointTotal", key = "#memberId")
     })
     public void checkMemberPoint(long memberId) {
