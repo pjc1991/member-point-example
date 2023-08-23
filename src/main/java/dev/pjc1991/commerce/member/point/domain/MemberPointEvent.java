@@ -176,7 +176,5 @@ public class MemberPointEvent {
         EARN, // 적립
         USE, // 사용
         EXPIRE, // 만료
-        REFUND, // 환불
-        CANCEL // 취소
     }
 }
