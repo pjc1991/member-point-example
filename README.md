@@ -214,6 +214,7 @@ curl -X POST http://localhost:8080/member/1/point/earn \
   "id": 1,
   "memberId": 1,
   "amount": 1000,
+  "type": "EARN",
   "createdAt": "2023-08-21T17:07:35.04654",
   "expireAt": "2024-08-21T17:07:35.04654"
 }
@@ -256,6 +257,7 @@ curl -X POST http://localhost:8080/member/1/point/use \
   "id": 2,
   "memberId": 1,
   "amount": -300,
+  "type": "USE",
   "createdAt": "2023-08-21T17:37:39.755156",
   "expireAt": null
 }   
@@ -293,8 +295,8 @@ curl -X DELETE http://localhost:8080/member/point/1
 {
   "id": 1,
   "memberId": 1,
-  "amount": 1000,
-  "type": "EARN",
+  "amount": -1000,
+  "type": "USE",
   "createdAt": "2023-08-21T17:07:35.04654",
   "expireAt": "2024-08-21T17:07:35.04654"
 }
@@ -303,10 +305,12 @@ curl -X DELETE http://localhost:8080/member/point/1
 - id : 적립금 내역 ID (long)
 - memberId : 회원 ID (long)
 - amount : 적립금 (Integer)
+  - 사용된 적립금액은 음수로 표현합니다.
 - type : 적립금 내역 타입 (Enum)
   - USE : 사용
 - createdAt : 적립일 (LocalDateTime)
 - expireAt : 적립금 만료일 (LocalDateTime)
+  - 적립금 사용 내역은 만료일이 없으므로 null로 표현합니다.
 ### 스케쥴 - 회원 적립금 만료
 
 매일 00시 00분 00초에 회원 적립금 만료 스케쥴이 실행됩니다.
