@@ -236,12 +236,16 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     public MemberPointEventResponse rollbackMemberPointUseResponse(long memberPointEventId) {
+        // 회원 적립금 이벤트를 조회합니다.
         MemberPointEvent event = memberPointEventRepository.findById(memberPointEventId).orElseThrow(() -> new MemberPointEventNotFound("회원 적립금 이벤트가 존재하지 않습니다."));
 
+        // 회원 적립금 이벤트의 타입이 사용이 아니면 예외를 발생시킵니다.
         if (event.getType() != MemberPointEvent.MemberPointEventType.USE) {
             throw new BadMemberPointTypeException("회원 적립금 이벤트의 타입이 사용이 아닙니다.");
         }
 
+        // 회원 적립금 이벤트의 상세 내역을 조회해, 적립금 사용 내역을 순회하며 롤백 상세 내역을 생성합니다.
+        // 롤백 상세 내역은 적립금 사용 내역의 반대로 생성하며, 적립금 사용 이벤트의 상세 내역 그룹 아이디를 참조합니다.
         List<MemberPointDetail> rollbacks = event.getMemberPointDetails().stream().map(MemberPointDetail::rollbackMemberPointDetail).toList();
         memberPointDetailRepository.saveAll(rollbacks);
 
@@ -316,9 +320,10 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 만료 시점을 변경합니다.
         memberPointEvent.setExpireAt(expireAt);
 
-        // 회원 적립금 이벤트의 상세 내역 그룹 아이디를 찾습니다. 적립 이벤트에는 상세 내역 (MemberPointDetail) 이 하나만 존재합니다.
-        Long memberPointDetailGroupId = memberPointEvent.getMemberPointDetails().stream().findFirst()
-                .orElseThrow(() -> new MemberPointDetailNotFoundException("회원 적립금 상세 내역이 존재하지 않습니다.")).getId();
+        // 회원 적립금 이벤트의 상세 내역 그룹 아이디를 찾습니다.
+        // type 이 EARN 인 이벤트는 상세 내역 그룹이 하나만 존재합니다.
+        Long memberPointDetailGroupId = memberPointEvent.getMemberPointDetails().stream().filter(memberPointDetail -> memberPointDetail.getType() == MemberPointDetail.MemberPointDetailType.EARN)
+                .findFirst().orElseThrow(() -> new MemberPointDetailNotFoundException("회원 적립금 상세 내역이 존재하지 않습니다.")).getId();
 
         // 회원 적립금 이벤트의 상세 내역 그룹을 모두 조회합니다.
         List<MemberPointDetail> memberPointDetailGroups = memberPointDetailRepository.findByMemberPointDetailGroupId(memberPointDetailGroupId);
