@@ -1,5 +1,6 @@
 package dev.pjc1991.commerce.member.point.dto;
 
+import dev.pjc1991.commerce.member.domain.Member;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -31,6 +32,9 @@ public class MemberPointDetailRemain {
 
     // 회원 아이디
     private Long memberId;
+
+    // 회원
+    private Member owner;
 
     public MemberPointDetailRemain(
             Long MemberPointDetailGroupId,

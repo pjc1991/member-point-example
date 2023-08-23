@@ -34,7 +34,7 @@ public class MemberPointEventRepositoryCustom extends QuerydslRepositorySupport 
         JPQLQuery<MemberPointEvent> query = from(memberPointEvent);
 
         // 회원 아이디로 조회합니다.
-        query.where(QMemberPointEvent.memberPointEvent.memberId.eq(search.getMemberId()));
+        query.where(QMemberPointEvent.memberPointEvent.member.id.eq(search.getMemberId()));
 
         // 최신순으로 정렬합니다.
         query.orderBy(

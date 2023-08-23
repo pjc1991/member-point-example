@@ -51,10 +51,9 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
 
         // 적립금 상세 내역에서 적립금 합계를 조회합니다.
         JPQLQuery<Integer> query = from(memberPointDetail)
-                .innerJoin(memberPointDetail.memberPointEvent)
                 .select(memberPointDetail.amount.sum())
                 .where(
-                        memberPointDetail.memberPointEvent.memberId.eq(memberId),
+                        memberPointDetail.memberPointEvent.member.id.eq(memberId),
                         memberPointDetail.expireAt.after(LocalDateTime.now())
                 );
 
@@ -151,7 +150,7 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
                         .from(memberPointDetail)
                         .innerJoin(memberPointDetail.memberPointEvent)
                         .where(
-                                memberPointDetail.memberPointEvent.memberId.eq(search.getMemberId()),
+                                memberPointDetail.memberPointEvent.member.id.eq(search.getMemberId()),
                                 memberPointDetail.expireAt.after(LocalDateTime.now()),
                                 memberPointDetail.amount.gt(0)
                         )
@@ -189,7 +188,7 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
                         QMemberPointDetail.memberPointDetail.amount.sum(),
                         QMemberPointDetail.memberPointDetail.expireAt.min(),
                         QMemberPointDetail.memberPointDetail.createdAt.min(),
-                        QMemberPointDetail.memberPointDetail.memberPointEvent.memberId.max()
+                        QMemberPointDetail.memberPointDetail.memberPointEvent.member.id.max()
                 ))
                 .groupBy(QMemberPointDetail.memberPointDetail.memberPointDetailGroupId)
                 .having(
@@ -246,10 +245,10 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
                                 memberPointDetail.amount.max().subtract(memberPointDetail.amount.sum()), // 회원 적립금 사용액
                                 memberPointDetail.expireAt.min(),
                                 memberPointDetail.createdAt.min(),
-                                memberPointDetail.memberPointEvent.memberId.max() // 회원 아이디
+                                memberPointDetail.memberPointEvent.member.id.max() // 회원 아이디
                         ))
                         .where(
-                                memberPointDetail.memberPointEvent.memberId.eq(memberId),
+                                memberPointDetail.memberPointEvent.member.id.eq(memberId),
                                 memberPointDetail.expireAt.after(LocalDateTime.now())
                         )
                         .groupBy(memberPointDetail.memberPointDetailGroupId)

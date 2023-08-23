@@ -1,5 +1,7 @@
 package dev.pjc1991.commerce.member.point.dto;
 
+import dev.pjc1991.commerce.member.domain.Member;
+import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.exception.BadMemberPointAmountException;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +11,7 @@ import lombok.Setter;
 public class MemberPointUseRequest {
     private Long memberId;
     private Integer amount;
+    private Member owner;
 
     public void setAmount(int amount) {
         if (amount <= 0) {

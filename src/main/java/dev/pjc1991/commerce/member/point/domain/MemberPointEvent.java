@@ -1,6 +1,7 @@
 package dev.pjc1991.commerce.member.point.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import dev.pjc1991.commerce.member.domain.Member;
 import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import dev.pjc1991.commerce.member.point.dto.MemberPointDetailRemain;
 import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
@@ -25,7 +26,6 @@ import java.util.Set;
 @Table(
         name = "MEMBER_POINT_EVENT"
         , indexes = {
-        @Index(name = "IDX_MEMBER_POINT_EVENT_MEMBER_ID", columnList = "MEMBER_ID"),
         @Index(name = "IDX_MEMBER_POINT_EVENT_CREATED_AT", columnList = "CREATED_AT"),
         @Index(name = "IDX_MEMBER_POINT_EVENT_EXPIRE_AT", columnList = "EXPIRE_AT")
 }
@@ -44,10 +44,11 @@ public class MemberPointEvent {
     private Long id;
 
     /**
-     * 회원 ID
+     * 회원
      */
-    @Column(name = "MEMBER_ID", nullable = false)
-    private long memberId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "MEMBER_ID", nullable = false)
+    private Member member;
 
     /**
      * 회원 적립금 적립/사용 금액
@@ -102,7 +103,7 @@ public class MemberPointEvent {
         }
 
         MemberPointEvent memberPointEvent = new MemberPointEvent();
-        memberPointEvent.memberId = memberPointCreate.getMemberId();
+        memberPointEvent.member = memberPointCreate.getOwner();
         memberPointEvent.amount = memberPointCreate.getAmount();
         memberPointEvent.createdAt = LocalDateTime.now();
         memberPointEvent.expireAt = LocalDateTime.of(memberPointEvent.createdAt.plusMonths(MEMBER_POINT_EXPIRE_MONTH).toLocalDate(), LocalTime.MAX);
@@ -121,7 +122,7 @@ public class MemberPointEvent {
             throw new BadMemberPointAmountException("적립금 사용은 음수가 될 수 없습니다.");
         }
         MemberPointEvent memberPointEvent = new MemberPointEvent();
-        memberPointEvent.memberId = memberPointUse.getMemberId();
+        memberPointEvent.member = memberPointUse.getOwner();
         memberPointEvent.amount = -memberPointUse.getAmount();
         // 사용은 음수로 표현합니다.
         memberPointEvent.createdAt = LocalDateTime.now();
@@ -149,7 +150,7 @@ public class MemberPointEvent {
         }
 
         MemberPointEvent memberPointEvent = new MemberPointEvent();
-        memberPointEvent.memberId = remain.getMemberId();
+        memberPointEvent.member = remain.getOwner();
         memberPointEvent.amount = -remain.getRemain();
         // 만료는 사용으로 표현합니다.
         memberPointEvent.createdAt = LocalDateTime.now();

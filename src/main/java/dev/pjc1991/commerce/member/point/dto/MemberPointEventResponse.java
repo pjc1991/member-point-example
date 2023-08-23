@@ -19,7 +19,7 @@ public class MemberPointEventResponse {
 
     public MemberPointEventResponse(MemberPointEvent entity) {
         this.id = entity.getId();
-        this.memberId = entity.getMemberId();
+        this.memberId = entity.getMember().getId();
         this.amount = entity.getAmount();
         this.createdAt = entity.getCreatedAt();
         this.expireAt = entity.getExpireAt();
