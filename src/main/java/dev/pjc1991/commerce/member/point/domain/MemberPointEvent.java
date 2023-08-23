@@ -176,19 +176,10 @@ public class MemberPointEvent {
     }
 
     public enum MemberPointEventType {
-
-        EARN("적립"),
-        USE("사용"),
-        EXPIRE("만료"),
-        REFUND("환불"),
-        CANCEL("사용 취소");
-
-        private final String description;
-
-        MemberPointEventType(String description) {
-            this.description = description;
-        }
-
-
+        EARN, // 적립
+        USE, // 사용
+        EXPIRE, // 만료
+        REFUND, // 환불
+        CANCEL // 취소
     }
 }
