@@ -254,8 +254,8 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 적립금 상세 내역을 순회하며 적립금 만료 이벤트를 생성합니다.
         for (MemberPointDetailRemain memberPointDetailRemain : memberPointDetails) {
             log.info("상세 내역 아이디 : {}, 만료 금액 : {}", memberPointDetailRemain.getMemberPointDetailGroupId(), memberPointDetailRemain.getRemain());
-            // 회원 인스턴스가 필요하므로 회원을 조회합니다.
-            Member member = memberRepository.getReferenceById(memberPointDetailRemain.getOwner().getId());
+            // 회원 인스턴스가 필요하므로 리퍼런스 인스턴스를 생성합니다.
+            Member member = memberRepository.getReferenceById(memberPointDetailRemain.getMemberId());
             memberPointDetailRemain.setOwner(member);
 
             // 적립금 만료 이벤트를 생성합니다.
