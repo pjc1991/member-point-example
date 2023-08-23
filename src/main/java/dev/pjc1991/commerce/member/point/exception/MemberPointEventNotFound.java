@@ -13,4 +13,8 @@ public class MemberPointEventNotFound extends RuntimeException implements Member
     public MemberPointEventNotFound(String message) {
         super(message);
     }
+
+    public MemberPointEventNotFound(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

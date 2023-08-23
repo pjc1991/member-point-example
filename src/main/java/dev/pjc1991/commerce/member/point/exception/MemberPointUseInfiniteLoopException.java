@@ -18,4 +18,8 @@ public class MemberPointUseInfiniteLoopException extends RuntimeException implem
     public MemberPointUseInfiniteLoopException(String message) {
         super(message);
     }
+
+    public MemberPointUseInfiniteLoopException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
