@@ -87,6 +87,7 @@ public class MemberPointController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public MemberPointEventResponse rollBackMemberPointUse(@PathVariable long memberPointEventId) {
-        return memberPointService.rollbackMemberPointUseResponse(memberPointEventId);
+        MemberPointEventResponse response = memberPointService.getMemberPointEventResponse(memberPointEventId);
+        return memberPointService.rollbackMemberPointUseResponse(response.getMemberId(), memberPointEventId);
     }
 }

@@ -22,12 +22,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Slf4j
 public class MemberPointExceptionHandleController {
 
-    private final ObjectMapper objectMapper;
 
     /**
      * 회원 적립금 타입이 잘못된 경우 발생하는 예외
      *
-     * @param e 예외
+     * @param request 요청
+     * @param e       예외
      * @return 에러 응답
      */
     @ExceptionHandler(NotEnoughPointException.class)
@@ -41,7 +41,8 @@ public class MemberPointExceptionHandleController {
     /**
      * 회원 적립금 금액이 잘못된 경우 발생하는 예외
      *
-     * @param e 예외
+     * @param request 요청
+     * @param e       예외
      * @return 에러 응답
      */
     @ExceptionHandler(BadMemberPointAmountException.class)
@@ -55,7 +56,8 @@ public class MemberPointExceptionHandleController {
     /**
      * 회원 적립금 만료일이 잘못된 경우 발생하는 예외
      *
-     * @param e 예외
+     * @param request 요청
+     * @param e       예외
      * @return 에러 응답
      */
     @ExceptionHandler(BadMemberPointExpireDateException.class)
@@ -69,6 +71,7 @@ public class MemberPointExceptionHandleController {
     /**
      * 회원 적립금 타입이 잘못된 경우 발생하는 예외
      *
+     * @param request 요청
      * @param e
      * @return 에러 응답
      */
@@ -83,8 +86,9 @@ public class MemberPointExceptionHandleController {
     /**
      * 회원 적립금 상세가 존재하지 않는 경우 발생하는 예외
      *
-     * @param e
-     * @return
+     * @param request 요청
+     * @param e       예외
+     * @return 에러 응답
      */
     @ExceptionHandler(MemberPointDetailNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -98,8 +102,8 @@ public class MemberPointExceptionHandleController {
      * 회원 적립금 사용시 무한루프가 발생하는 경우 발생하는 예외
      * 매커니즘의 문제이므로 구체적인 에러 메시지는 노출하지 않습니다.
      *
-     * @param e
-     * @return
+     * @param e 예외
+     * @return 에러 응답
      */
     @ExceptionHandler(MemberPointUseInfiniteLoopException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -110,12 +114,44 @@ public class MemberPointExceptionHandleController {
     }
 
     /**
+     * 회원 적립금 적립/사용 내역이 이미 취소되었을 때 발생하는 예외
+     *
+     * @param request 요청
+     * @param e       예외
+     * @return 에러 응답
+     */
+    @ExceptionHandler(MemberPointAlreadyRollbackedException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseBody
+    public ErrorResponse handleMemberPointAlreadyRollbackedException(HttpServletRequest request, MemberPointAlreadyRollbackedException e) {
+        logError(request, e);
+        return new ErrorResponse(e);
+    }
+
+    /**
+     * 회원 적립금 정산 처리가 비정상적으로 이루저였을 때 발생하는 예외
+     * 예외를 외부에 완전히 노출할 경우 보안상의 문제가 발생할 수 있으므로
+     * 구체적인 에러 메시지는 노출하지 않습니다.
+     *
+     * @param request 요청
+     * @param e       예외
+     * @return 에러 응답
+     */
+    @ExceptionHandler(MemberPointAmountBrokenException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public ErrorResponse handleMemberPointAmountBrokenException(HttpServletRequest request, MemberPointAmountBrokenException e) {
+        logError(request, e);
+        return new ErrorResponse();
+    }
+
+    /**
      * 그 외의 예외를 처리하기 위한 핸들러
      * 예외를 외부에 완전히 노출할 경우 보안상의 문제가 발생할 수 있으므로
-     * Exception 클래스를 통해 예외를 처리합니다.
+     * 구체적인 에러 메시지는 노출하지 않습니다.
      *
-     * @param e
-     * @return
+     * @param e 예외
+     * @return 에러 응답
      */
     @ExceptionHandler(Exception.class)
     @ResponseBody
@@ -124,11 +160,12 @@ public class MemberPointExceptionHandleController {
         return new ErrorResponse();
     }
 
+
     /**
      * 에러 로그를 남깁니다.
      *
-     * @param request
-     * @param e
+     * @param request 요청
+     * @param e       예외
      */
     private void logError(HttpServletRequest request, Exception e) {
         String requestUri = request.getRequestURI();

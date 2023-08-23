@@ -25,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 
 @Service
@@ -111,6 +110,17 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 회원이 존재하지 않으면 예외를 발생시킵니다.
         memberRepository.findById(search.getMemberId()).orElseThrow(() -> new MemberNotFoundException("회원이 존재하지 않습니다."));
         return memberPointEventRepositoryCustom.getMemberPointEvents(search);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MemberPointEvent getMemberPointEvent(long memberPointEventId) {
+        return memberPointEventRepository.findById(memberPointEventId).orElseThrow(() -> new MemberPointEventNotFound("회원 적립금 이벤트가 존재하지 않습니다."));
+    }
+
+    @Override
+    public MemberPointEventResponse getMemberPointEventResponse(long memberPointEventId) {
+        return new MemberPointEventResponse(self.getMemberPointEvent(memberPointEventId));
     }
 
     /**
@@ -226,14 +236,11 @@ public class MemberPointServiceImpl implements MemberPointService {
         return new MemberPointEventResponse(useMemberPoint(memberPointUse));
     }
 
-    /**
-     * 회원 적립금 사용 취소
-     * 사용된 적립금 사용을 취소합니다. 환불이 아니고 롤백이기 때문에, MemberPointEvent 의 상세 내역을 삭제하지 않습니다.
-     * @param memberPointEventId
-     * @return
-     */
     @Override
-    public MemberPointEventResponse rollbackMemberPointUseResponse(long memberPointEventId) {
+    @Caching(evict = {
+            @CacheEvict(value = "memberPointTotal", key = "#memberPointUse.memberId")
+    })
+    public MemberPointEvent rollbackMemberPointUse(long memberPointEventId) {
         // 회원 적립금 이벤트를 조회합니다.
         MemberPointEvent event = memberPointEventRepository.findById(memberPointEventId).orElseThrow(() -> new MemberPointEventNotFound("회원 적립금 이벤트가 존재하지 않습니다."));
 
@@ -242,12 +249,40 @@ public class MemberPointServiceImpl implements MemberPointService {
             throw new BadMemberPointTypeException("회원 적립금 이벤트의 타입이 사용이 아닙니다.");
         }
 
+        // 회원 적립금 이벤트의 상세 내역을 합산합니다.
+        int usedAmount = event.getMemberPointDetails().stream().mapToInt(MemberPointDetail::getAmount).sum();
+
+        // 회원 적립금 이벤트의 상세 내역의 합산 금액이 0 이라면 이미 사용 취소된 이벤트입니다.
+        if (usedAmount == 0) {
+            throw new MemberPointAlreadyRollbackedException("이미 롤백된 회원 적립금 이벤트입니다.");
+        }
+
+        // 회원 적립금 이벤트의 상세 내역의 합산 금액이 0 보다 크다면 데이터 처리가 잘못된 것입니다.
+        if (usedAmount > 0) {
+            throw new MemberPointAmountBrokenException("회원 적립금 이벤트의 상세 내역의 합산 금액이 0 보다 큽니다.");
+        }
+
+
         // 회원 적립금 이벤트의 상세 내역을 조회해, 적립금 사용 내역을 순회하며 롤백 상세 내역을 생성합니다.
         // 롤백 상세 내역은 적립금 사용 내역의 반대로 생성하며, 적립금 사용 이벤트의 상세 내역 그룹 아이디를 참조합니다.
         List<MemberPointDetail> rollbacks = event.getMemberPointDetails().stream().map(MemberPointDetail::rollbackMemberPointDetail).toList();
         memberPointDetailRepository.saveAll(rollbacks);
 
-        return new MemberPointEventResponse(event);
+        return event;
+    }
+
+    /**
+     * 회원 적립금 사용 취소
+     * 사용된 적립금 사용을 취소합니다. 환불이 아니고 롤백이기 때문에, MemberPointEvent 의 상세 내역을 삭제하지 않습니다.
+     * @param memberPointEventId
+     * @return 회원 적립금 사용 이벤트
+     */
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = "memberPointTotal", key = "#memberId")
+    })
+    public MemberPointEventResponse rollbackMemberPointUseResponse(long memberId, long memberPointEventId) {
+        return new MemberPointEventResponse(rollbackMemberPointUse(memberPointEventId));
 
     }
 

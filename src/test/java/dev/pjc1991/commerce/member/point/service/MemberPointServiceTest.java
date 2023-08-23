@@ -4,8 +4,10 @@ import dev.pjc1991.commerce.member.domain.Member;
 import dev.pjc1991.commerce.member.dto.MemberSignupRequest;
 import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
+import dev.pjc1991.commerce.member.point.dto.MemberPointEventResponse;
 import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
 import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
+import dev.pjc1991.commerce.member.point.exception.MemberPointAlreadyRollbackedException;
 import dev.pjc1991.commerce.member.point.repository.MemberPointDetailRepository;
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepository;
 import dev.pjc1991.commerce.member.repository.MemberRepository;
@@ -492,6 +494,53 @@ class MemberPointServiceTest {
         log.info("예상된 적립금 : {}", expectedPoint);
         log.info("실제 적립금 : {}", resultPoint);
         assertEquals(expectedPoint, resultPoint);
+    }
+
+
+    @Test
+    void rollbackMemberPointUseResponse() {
+        // given
+
+        // 적립금을 적립합니다.
+        MemberPointEvent earn = memberPointService.earnMemberPoint(getTestMemberPointCreateRequest(TEST_MEMBER_ID, 10000));
+
+        // 적립 금액을 확인합니다.
+        int before = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+
+        // 적립 내역을 확인합니다.
+        MemberPointEventSearch search = getMemberPointEventSearch(TEST_MEMBER_ID, 0, 10);
+        Page<MemberPointEvent> memberPointEvents = memberPointService.getMemberPointEvents(search);
+
+        // 적립금을 사용합니다.
+        MemberPointEvent use = memberPointService.useMemberPoint(getTestMemberPointUseRequest(TEST_MEMBER_ID, 1000));
+        int afterUse = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+        Page<MemberPointEvent> memberPointEventsAfterUse = memberPointService.getMemberPointEvents(search);
+
+        // when
+
+        // 적립금 사용을 취소합니다.
+        MemberPointEventResponse rollback = memberPointService.rollbackMemberPointUseResponse(TEST_MEMBER_ID, use.getId());
+
+        // then
+
+        // 금액이 정상적인지 확인합니다.
+        int afterRollback = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+        log.info("적립금 적립 이후 금액 : {}", before);
+        log.info("적립금 사용 이후 금액 : {}", afterUse);
+        log.info("적립금 사용 취소 이후 금액 : {}", afterRollback);
+
+        assertEquals(before, afterRollback);
+
+        // 적립 내역에 취소된 이벤트가 있는지 확인합니다.
+        Page<MemberPointEvent> memberPointEventsAfterRollback = memberPointService.getMemberPointEvents(search);
+        memberPointEventsAfterUse.get().forEach(event -> log.info("취소 전 타입 {} 금액 : {}", event.getType(), event.getAmount()));
+        memberPointEventsAfterRollback.get().forEach(event -> log.info("취소 후 타입 {} 금액 : {}", event.getType(), event.getAmount()));
+        // 적립금 사용 취소 이후 적립금 사용 이벤트가 조회 되지 않아야 합니다.
+        assertFalse(memberPointEventsAfterRollback.getContent().stream().anyMatch(event -> event.getId() == use.getId()));
+        // 사용 이후와 롤백 이후 조회되는 이벤트 갯수가 같아서는 안됩니다.
+        assertNotEquals(memberPointEventsAfterUse.getTotalElements(), memberPointEventsAfterRollback.getTotalElements());
+        // 한번 더 롤백을 수행하면 실패해야 합니다.
+        assertThrows(MemberPointAlreadyRollbackedException.class, () -> memberPointService.rollbackMemberPointUseResponse(TEST_MEMBER_ID, use.getId()));
     }
 
 
