@@ -173,6 +173,23 @@ public class MemberPointDetail {
     }
 
     /**
+     * 이미 사용된 회원 적립금 상세 내역을 사용 취소합니다.
+     * @param detail
+     * @return
+     */
+    public static MemberPointDetail rollbackMemberPointDetail(MemberPointDetail detail) {
+        MemberPointDetail rollbackDetail = new MemberPointDetail();
+        rollbackDetail.memberPointEvent = detail.memberPointEvent;
+        rollbackDetail.memberPointDetailGroupId = detail.memberPointDetailGroupId;
+        rollbackDetail.memberPointDetailRefundId = detail.id;
+        rollbackDetail.amount = -detail.amount;
+        rollbackDetail.createdAt = LocalDateTime.now();
+        rollbackDetail.expireAt = detail.expireAt;
+
+        return rollbackDetail;
+    }
+
+    /**
      * 회원 적립금 적립 발생 상세 내역에 그룹 ID와 환불 대상 ID를 설정합니다.
      */
     public void updateGroupIdSelf() {

@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 
 @Service
@@ -225,6 +226,27 @@ public class MemberPointServiceImpl implements MemberPointService {
     })
     public MemberPointEventResponse useMemberPointResponse(MemberPointUseRequest memberPointUse) {
         return new MemberPointEventResponse(useMemberPoint(memberPointUse));
+    }
+
+    /**
+     * 회원 적립금 사용 취소
+     * 사용된 적립금 사용을 취소합니다. 환불이 아니고 롤백이기 때문에, MemberPointEvent 의 상세 내역을 삭제하지 않습니다.
+     * @param memberPointEventId
+     * @return
+     */
+    @Override
+    public MemberPointEventResponse rollbackMemberPointUseResponse(long memberPointEventId) {
+        MemberPointEvent event = memberPointEventRepository.findById(memberPointEventId).orElseThrow(() -> new MemberPointEventNotFound("회원 적립금 이벤트가 존재하지 않습니다."));
+
+        if (event.getType() != MemberPointEvent.MemberPointEventType.USE) {
+            throw new BadMemberPointTypeException("회원 적립금 이벤트의 타입이 사용이 아닙니다.");
+        }
+
+        List<MemberPointDetail> rollbacks = event.getMemberPointDetails().stream().map(MemberPointDetail::rollbackMemberPointDetail).toList();
+        memberPointDetailRepository.saveAll(rollbacks);
+
+        return new MemberPointEventResponse(event);
+
     }
 
     /**

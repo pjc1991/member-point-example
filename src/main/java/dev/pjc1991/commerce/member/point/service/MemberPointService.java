@@ -74,6 +74,12 @@ public interface MemberPointService {
     MemberPointEventResponse useMemberPointResponse(MemberPointUseRequest memberPointUse);
 
     /**
+     * 회원 적립금 사용을 롤백합니다.
+     *
+     */
+    MemberPointEventResponse rollbackMemberPointUseResponse(long memberPointEventId);
+
+    /**
      * 회원 적립금 캐시 초기화
      * 회원 적립금의 캐시를 초기화합니다.
      * 현재 테스트에서 사용하고 있습니다.
