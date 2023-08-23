@@ -294,8 +294,14 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 만료 시점을 변경합니다.
         memberPointEvent.setExpireAt(expireAt);
 
+        // 회원 적립금 이벤트의 상세 내역 그룹 아이디를 찾습니다. 적립 이벤트에는 상세 내역 (MemberPointDetail) 이 하나만 존재합니다.
+        Long memberPointDetailGroupId = memberPointEvent.getMemberPointDetails().stream().findFirst()
+                .orElseThrow(() -> new MemberPointDetailNotFoundException("회원 적립금 상세 내역이 존재하지 않습니다.")).getId();
+
         // 회원 적립금 이벤트의 상세 내역 그룹을 모두 조회합니다.
-        List<MemberPointDetail> memberPointDetailGroups = memberPointDetailRepository.findByMemberPointDetailGroupId(memberPointEvent.getMemberPointDetails().stream().findFirst().get().getId());
+        List<MemberPointDetail> memberPointDetailGroups = memberPointDetailRepository.findByMemberPointDetailGroupId(memberPointDetailGroupId);
+
+        // 회원 적립금 이벤트의 상세 내역 그룹을 순회하며 만료 시점을 변경합니다.
         List<MemberPointEvent> memberPointDetailGroupEvents = memberPointDetailGroups.stream().map(MemberPointDetail::getMemberPointEvent).toList();
 
         // 만료 시점을 변경합니다.
