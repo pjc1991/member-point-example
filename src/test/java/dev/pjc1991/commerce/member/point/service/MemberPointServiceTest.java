@@ -540,7 +540,11 @@ class MemberPointServiceTest {
         // 사용 이후와 롤백 이후 조회되는 이벤트 갯수가 같아서는 안됩니다.
         assertNotEquals(memberPointEventsAfterUse.getTotalElements(), memberPointEventsAfterRollback.getTotalElements());
         // 한번 더 롤백을 수행하면 실패해야 합니다.
-        assertThrows(MemberPointAlreadyRollbackedException.class, () -> memberPointService.rollbackMemberPointUseResponse(TEST_MEMBER_ID, use.getId()));
+        entityManager.flush();
+        entityManager.clear();
+        assertThrows(MemberPointAlreadyRollbackedException.class, () -> {
+            MemberPointEventResponse rollbackAgain = memberPointService.rollbackMemberPointUseResponse(TEST_MEMBER_ID, use.getId());
+        });
     }
 
 

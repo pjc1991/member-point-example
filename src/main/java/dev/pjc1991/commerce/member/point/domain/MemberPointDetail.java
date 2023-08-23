@@ -186,9 +186,9 @@ public class MemberPointDetail {
      * @param detail
      * @return
      */
-    public static MemberPointDetail rollbackMemberPointDetail(MemberPointDetail detail) {
+    public static MemberPointDetail rollbackMemberPointDetail(MemberPointDetail detail, MemberPointEvent event) {
         MemberPointDetail rollbackDetail = new MemberPointDetail();
-        rollbackDetail.memberPointEvent = detail.memberPointEvent;
+        rollbackDetail.memberPointEvent = event;
         rollbackDetail.memberPointDetailGroupId = detail.memberPointDetailGroupId;
         rollbackDetail.memberPointDetailRefundId = detail.id;
         rollbackDetail.amount = -detail.amount;

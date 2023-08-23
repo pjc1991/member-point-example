@@ -265,7 +265,7 @@ public class MemberPointServiceImpl implements MemberPointService {
 
         // 회원 적립금 이벤트의 상세 내역을 조회해, 적립금 사용 내역을 순회하며 롤백 상세 내역을 생성합니다.
         // 롤백 상세 내역은 적립금 사용 내역의 반대로 생성하며, 적립금 사용 이벤트의 상세 내역 그룹 아이디를 참조합니다.
-        List<MemberPointDetail> rollbacks = event.getMemberPointDetails().stream().map(MemberPointDetail::rollbackMemberPointDetail).toList();
+        List<MemberPointDetail> rollbacks = event.getMemberPointDetails().stream().map(detail -> MemberPointDetail.rollbackMemberPointDetail(detail, event)).toList();
         memberPointDetailRepository.saveAll(rollbacks);
 
         return event;
