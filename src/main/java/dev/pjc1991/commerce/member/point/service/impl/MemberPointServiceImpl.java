@@ -218,7 +218,7 @@ public class MemberPointServiceImpl implements MemberPointService {
             @CacheEvict(value = "memberPointTotal", key = "#memberId")
     })
     public void clearMemberPointTotalCache(long memberId) {
-        return;
+        // 적립금 합계의 캐시를 초기화합니다. CacheEvict 어노테이션을 사용하므로 별도의 코드가 필요하지 않습니다.
     }
 
     /**
@@ -297,7 +297,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         if (memberPointDetails.isEmpty()) {
             log.info("적립금이 없습니다.");
             return;
-        };
+        }
 
         // 사용 금액이 0이 아닌 가장 최신 적립금 상세 그룹을 찾습니다.
         MemberPointDetailRemain LatestUsed = memberPointDetails.get(0);
