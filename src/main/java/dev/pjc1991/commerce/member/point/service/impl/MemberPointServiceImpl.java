@@ -3,6 +3,10 @@ package dev.pjc1991.commerce.member.point.service.impl;
 import dev.pjc1991.commerce.member.point.domain.MemberPointDetail;
 import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.dto.*;
+import dev.pjc1991.commerce.member.point.exception.BadMemberPointTypeException;
+import dev.pjc1991.commerce.member.point.exception.MemberPointNoFirstInFirstOutException;
+import dev.pjc1991.commerce.member.point.exception.MemberPointUseInfiniteLoopException;
+import dev.pjc1991.commerce.member.point.exception.NotEnoughPointException;
 import dev.pjc1991.commerce.member.point.repository.MemberPointDetailRepository;
 import dev.pjc1991.commerce.member.point.repository.MemberPointDetailRepositoryCustom;
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepositoryCustom;
@@ -175,7 +179,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         int memberPointTotal = self.getMemberPointTotal(memberPointUseRequest.getMemberId());
         // 사용하려는 적립금이 총액보다 크다면 예외를 발생시킵니다.
         if (memberPointTotal - memberPointUseRequest.getAmount() < 0) {
-            throw new RuntimeException("적립금이 부족합니다.");
+            throw new NotEnoughPointException("적립금이 부족합니다.");
         }
 
         // 회원 적립금 사용 이벤트를 생성합니다.
@@ -269,7 +273,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 회원 적립금 이벤트를 조회합니다.
         MemberPointEvent memberPointEvent = memberPointEventRepository.findById(memberPointEventId).orElseThrow(() -> new RuntimeException("회원 적립금 이벤트가 존재하지 않습니다."));
         if (memberPointEvent.getType() != MemberPointEvent.MemberPointEventType.EARN) {
-            throw new RuntimeException("회원 적립금 이벤트의 타입이 적립이 아닙니다.");
+            throw new BadMemberPointTypeException("회원 적립금 이벤트의 타입이 적립이 아닙니다.");
         }
 
         // 만료 시점을 변경합니다.
@@ -324,7 +328,7 @@ public class MemberPointServiceImpl implements MemberPointService {
                 log.error("LatestUsed.getMemberPointDetailGroupId() : {}", LatestUsed.getMemberPointDetailGroupId());
                 log.error("LatestUsed.getCreatedAt() : {}", LatestUsed.getCreatedAt());
 
-                throw new RuntimeException("적립금이 선입선출 형태로 사용되지 않았습니다.");
+                throw new MemberPointNoFirstInFirstOutException("적립금이 선입선출 형태로 사용되지 않았습니다.");
             }
         }
         log.info("적립금이 선입선출 형태로 사용되었습니다.");
@@ -366,7 +370,7 @@ public class MemberPointServiceImpl implements MemberPointService {
 
             // 오류로 인해 무한 루프하는 것을 방지합니다.
             if (search.getOffset() > totalCount) {
-                throw new RuntimeException("비정상적으로 반복문이 진행되고 있습니다. ");
+                throw new MemberPointUseInfiniteLoopException("비정상적으로 반복문이 진행되고 있습니다. ");
             }
 
         }
