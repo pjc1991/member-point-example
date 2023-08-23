@@ -1,13 +1,18 @@
 package dev.pjc1991.commerce.member.point.service;
 
+import dev.pjc1991.commerce.member.domain.Member;
+import dev.pjc1991.commerce.member.dto.MemberSignupRequest;
 import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
 import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
 import dev.pjc1991.commerce.member.point.repository.MemberPointDetailRepository;
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepository;
+import dev.pjc1991.commerce.member.repository.MemberRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -19,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.util.StopWatch;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -27,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class MemberPointServiceTest {
 
     private static final Logger log = LoggerFactory.getLogger(MemberPointServiceTest.class);
-    private static final int TEST_MEMBER_ID = 1;
+    private static final long TEST_MEMBER_ID = 1;
     private static final int TEST_POINT_AMOUNT = 10000;
 
     @Autowired
@@ -36,6 +42,30 @@ class MemberPointServiceTest {
     MemberPointDetailRepository memberPointDetailRepository;
     @Autowired
     MemberPointService memberPointService;
+    @Autowired
+    MemberRepository memberRepository;
+    @Autowired
+    EntityManager entityManager;
+
+
+    @BeforeEach
+    void setup() {
+        // 테스트가 시작되기 전에 더미 데이터를 생성합니다.
+        int testCount = 100;
+        for (int i = 0; i < testCount; i++) {
+            Member member = createDummyMember();
+            MemberPointCreateRequest memberPointCreateRequest = getTestMemberPointCreateRequest(member.getId(), Math.toIntExact(Math.round(Math.random() * TEST_POINT_AMOUNT)) + 1);
+            MemberPointEvent event = memberPointService.earnMemberPoint(memberPointCreateRequest);
+        }
+    }
+
+
+    private Member createDummyMember() {
+        MemberSignupRequest memberSignupRequest = new MemberSignupRequest();
+        memberSignupRequest.setName(UUID.randomUUID().toString().substring(0, 10));
+        Member member = memberRepository.save(Member.signup(memberSignupRequest));
+        return member;
+    }
 
     /**
      * 테스트가 끝난 후에는 실행됩니다.
@@ -179,7 +209,7 @@ class MemberPointServiceTest {
         assertNotNull(result);
 
         // 생성된 객체의 값이 정상적인지 확인합니다.
-        assertEquals(TEST_MEMBER_ID, result.getMemberId());
+        assertEquals(TEST_MEMBER_ID, result.getMember().getId());
         assertEquals(testPointAmount, result.getAmount());
 
         // 적립금 합계가 예상한 값과 같은지 확인합니다.
@@ -235,8 +265,8 @@ class MemberPointServiceTest {
 
         // 생성된 객체의 값이 정상적인지 확인합니다.
         log.info("예상 회원 아이디 : {}", TEST_MEMBER_ID);
-        log.info("실제 회원 아이디 : {}", result.getMemberId());
-        assertEquals(TEST_MEMBER_ID, result.getMemberId());
+        log.info("실제 회원 아이디 : {}", result.getMember().getId());
+        assertEquals(TEST_MEMBER_ID, result.getMember().getId());
 
         log.info("예상되는 금액 : {}", -testPointUseAmount);
         log.info("실제 금액 : {}", result.getAmount());
