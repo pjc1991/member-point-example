@@ -80,7 +80,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     @Cacheable(value = "memberPointTotal", key = "#memberId")
     public int getMemberPointTotal(long memberId) {
         // 회원이 존재하지 않으면 예외를 발생시킵니다.
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new MemberNotFoundException("회원이 존재하지 않습니다."));
+        memberRepository.findById(memberId).orElseThrow(() -> new MemberNotFoundException("회원이 존재하지 않습니다."));
         return memberPointDetailRepositoryCustom.getMemberPointTotal(memberId);
     }
 
@@ -108,7 +108,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     @Transactional(readOnly = true)
     public Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search) {
         // 회원이 존재하지 않으면 예외를 발생시킵니다.
-        Member member = memberRepository.findById(search.getMemberId()).orElseThrow(() -> new MemberNotFoundException("회원이 존재하지 않습니다."));
+        memberRepository.findById(search.getMemberId()).orElseThrow(() -> new MemberNotFoundException("회원이 존재하지 않습니다."));
         return memberPointEventRepositoryCustom.getMemberPointEvents(search);
     }
 
