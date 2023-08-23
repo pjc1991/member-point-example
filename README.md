@@ -73,7 +73,7 @@ curl -X GET http://localhost:8080/member/1/point/total
 }
 ```
 
-- memberId : 회원 ID (Integer)
+- memberId : 회원 ID (long)
 - totalPoint : 적립금 합계 (Integer)
 ---
 
@@ -161,8 +161,8 @@ curl -X GET http://localhost:8080/member/1/point
 } 
 ```
 - contents : 적립금 내역 (List)
-  - id : 적립금 내역 ID (Integer)
-  - memberId : 회원 ID (Integer)
+  - id : 적립금 내역 ID (long)
+  - memberId : 회원 ID (long)
   - amount : 적립금 (Integer)
   - type : 적립금 내역 타입 (Enum)
     - EARN : 적립
@@ -219,8 +219,8 @@ curl -X POST http://localhost:8080/member/1/point/earn \
 }
 ```
 
-- id : 적립금 내역 ID (Integer)
-- memberId : 회원 ID (Integer)
+- id : 적립금 내역 ID (long)
+- memberId : 회원 ID (long)
 - amount : 적립금 (Integer)
 - type : 적립금 내역 타입 (Enum)
   - EARN : 적립
@@ -261,8 +261,8 @@ curl -X POST http://localhost:8080/member/1/point/use \
 }   
 ```
 
-- id : 적립금 내역 ID (Integer)
-- memberId : 회원 ID (Integer)
+- id : 적립금 내역 ID (long)
+- memberId : 회원 ID (long)
 - amount : 금액 (Integer)
   - 사용된 적립금액은 음수로 표현합니다.
 - type : 적립금 내역 타입 (Enum)
@@ -277,6 +277,36 @@ curl -X POST http://localhost:8080/member/1/point/use \
 
 구체적인 코드는 해당 경로에서 확인 가능합니다.
 
+### API - 회원 적립금 사용 취소
+
+#### 요청
+```bash
+curl -X DELETE http://localhost:8080/member/point/1
+```
+- Method: DELETE
+- URL: /member/point/{memberPointEventId}
+- Path Variable
+  - memberPointEventId: 적립금 내역 ID
+
+#### 응답
+```json
+{
+  "id": 1,
+  "memberId": 1,
+  "amount": 1000,
+  "type": "EARN",
+  "createdAt": "2023-08-21T17:07:35.04654",
+  "expireAt": "2024-08-21T17:07:35.04654"
+}
+```
+(기존에 사용된 적립금 내역을 반환합니다.)
+- id : 적립금 내역 ID (long)
+- memberId : 회원 ID (long)
+- amount : 적립금 (Integer)
+- type : 적립금 내역 타입 (Enum)
+  - USE : 사용
+- createdAt : 적립일 (LocalDateTime)
+- expireAt : 적립금 만료일 (LocalDateTime)
 ### 스케쥴 - 회원 적립금 만료
 
 매일 00시 00분 00초에 회원 적립금 만료 스케쥴이 실행됩니다.
