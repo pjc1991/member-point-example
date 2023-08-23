@@ -101,10 +101,6 @@ public class MemberPointEvent {
             throw new BadMemberPointAmountException("적립금 적립은 음수가 될 수 없습니다.");
         }
 
-        if (memberPointCreate.getMemberId() == null) {
-            throw new IllegalArgumentException("회원 ID가 null입니다.");
-        }
-
         MemberPointEvent memberPointEvent = new MemberPointEvent();
         memberPointEvent.memberId = memberPointCreate.getMemberId();
         memberPointEvent.amount = memberPointCreate.getAmount();

@@ -93,11 +93,6 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
      */
     public List<MemberPointDetailRemain> getMemberPointDetailAvailable(MemberPointDetailSearch search) {
         // 적립금 상세 내역에서 회원 아이디로 조회합니다.
-        // 회원 아이디가 없으면 예외를 발생시킵니다.
-        if (search.getMemberId() == null) {
-            throw new IllegalArgumentException("memberId 가 null 입니다.");
-        }
-
         // 실행되는 SQL 은 다음과 같습니다.
 
         /*
