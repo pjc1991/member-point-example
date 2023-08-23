@@ -86,7 +86,7 @@ public class MemberPointController {
     @DeleteMapping("/member/point/{memberPointEventId}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public MemberPointEventResponse useMemberPoint(@PathVariable long memberPointEventId) {
+    public MemberPointEventResponse rollBackMemberPointUse(@PathVariable long memberPointEventId) {
         return memberPointService.rollbackMemberPointUseResponse(memberPointEventId);
     }
 }
