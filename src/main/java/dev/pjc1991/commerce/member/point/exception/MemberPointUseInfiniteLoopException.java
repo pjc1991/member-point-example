@@ -4,12 +4,18 @@ package dev.pjc1991.commerce.member.point.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.io.Serial;
+
 /**
  * 회원 적립금 사용시 무한루프가 발생하는 경우 발생하는 예외
  * 이 예외가 발생했다면 회원 적립금 사용 매커니즘에 문제가 있는 것입니다.
+ * 테스트 시에 발생할 수 있으며, 실제 운영 환경에서는 발생하지 않아야 합니다.
  */
-@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "회원 적립금 사용시 무한루프가 발생했습니다.")
-public class MemberPointUseInfiniteLoopException extends RuntimeException {
+@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "적립금 사용에 문제가 발생했습니다.")
+public class MemberPointUseInfiniteLoopException extends RuntimeException implements MemberPointExceptionInterface {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     public MemberPointUseInfiniteLoopException(String message) {
         super(message);
     }
