@@ -1,7 +1,7 @@
 package dev.pjc1991.commerce.member.point.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.pjc1991.commerce.dto.ErrorResponse;
+import dev.pjc1991.commerce.member.exception.MemberNotFoundException;
 import dev.pjc1991.commerce.member.point.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +20,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequiredArgsConstructor
 @Slf4j
 public class MemberPointExceptionHandleController {
+
+    @ExceptionHandler(MemberNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public ErrorResponse handleMemberNotFoundException(HttpServletRequest request, MemberNotFoundException e) {
+        logError(request, e);
+        return new ErrorResponse(e);
+    }
 
 
     /**
