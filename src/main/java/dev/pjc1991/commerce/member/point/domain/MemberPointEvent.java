@@ -44,7 +44,7 @@ public class MemberPointEvent {
      * 회원 ID
      */
     @Column(name = "MEMBER_ID", nullable = false)
-    private int memberId;
+    private long memberId;
 
     /**
      * 회원 적립금 적립/사용 금액

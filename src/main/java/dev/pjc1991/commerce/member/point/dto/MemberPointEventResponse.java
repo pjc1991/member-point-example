@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class MemberPointEventResponse {
 
     private Long id;
-    private Integer memberId;
+    private Long memberId;
     private Integer amount;
     private String type;
     private LocalDateTime createdAt;

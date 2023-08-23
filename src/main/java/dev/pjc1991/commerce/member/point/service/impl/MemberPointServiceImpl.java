@@ -70,7 +70,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "memberPointTotal", key = "#memberId")
-    public int getMemberPointTotal(int memberId) {
+    public int getMemberPointTotal(long memberId) {
         return memberPointDetailRepositoryCustom.getMemberPointTotal(memberId);
     }
 
@@ -83,7 +83,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Transactional(readOnly = true)
-    public MemberPointTotalResponse getMemberPointTotalResponse(int memberId) {
+    public MemberPointTotalResponse getMemberPointTotalResponse(long memberId) {
         return new MemberPointTotalResponse(memberId, self.getMemberPointTotal(memberId));
     }
 
@@ -219,7 +219,7 @@ public class MemberPointServiceImpl implements MemberPointService {
             @CacheEvict(value = "memberPointEvent", allEntries = true),
             @CacheEvict(value = "memberPointTotal", key = "#memberId")
     })
-    public void clearMemberPointTotalCache(int memberId) {
+    public void clearMemberPointTotalCache(long memberId) {
         return;
     }
 
@@ -296,7 +296,7 @@ public class MemberPointServiceImpl implements MemberPointService {
             @CacheEvict(value = "memberPointEvent", allEntries = true),
             @CacheEvict(value = "memberPointTotal", key = "#memberId")
     })
-    public void checkMemberPoint(int memberId) {
+    public void checkMemberPoint(long memberId) {
         // 해당 회원의 적립금 상세 그룹을 조회합니다.
         List<MemberPointDetailRemain> memberPointDetails = memberPointDetailRepositoryCustom.getMemberPointRemains(memberId);
         if (memberPointDetails.isEmpty()) {

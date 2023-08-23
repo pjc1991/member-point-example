@@ -45,7 +45,7 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
      * @param memberId 회원 아이디
      * @return 회원의 적립금 총합
      */
-    public int getMemberPointTotal(int memberId) {
+    public int getMemberPointTotal(long memberId) {
         // 적립금 총합을 계산하기 위해 적립금 상세 내역에서 회원 아이디로 조회합니다.
         QMemberPointDetail memberPointDetail = QMemberPointDetail.memberPointDetail;
 
@@ -239,7 +239,7 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
      * @param memberId
      * @return
      */
-    public List<MemberPointDetailRemain> getMemberPointRemains(int memberId) {
+    public List<MemberPointDetailRemain> getMemberPointRemains(long memberId) {
         QMemberPointDetail memberPointDetail = QMemberPointDetail.memberPointDetail;
         JPQLQuery<MemberPointDetailRemain> query =
                 from(memberPointDetail)

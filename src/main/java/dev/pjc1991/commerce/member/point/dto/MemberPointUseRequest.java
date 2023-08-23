@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MemberPointUseRequest {
-    private Integer memberId;
+    private Long memberId;
     private Integer amount;
 
     public void setAmount(int amount) {

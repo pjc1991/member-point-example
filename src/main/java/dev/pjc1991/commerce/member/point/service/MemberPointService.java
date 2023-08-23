@@ -15,7 +15,7 @@ public interface MemberPointService {
      * @param memberId 회원 아이디
      * @return 회원 적립금 합계 (int)
      */
-    int getMemberPointTotal(int memberId);
+    int getMemberPointTotal(long memberId);
 
     /**
      * 회원 적립금 합계 조회 (Response)
@@ -23,7 +23,7 @@ public interface MemberPointService {
      * @param memberId 회원 아이디
      * @return 회원 적립금 합계 (MemberPointTotalResponse)
      */
-    MemberPointTotalResponse getMemberPointTotalResponse(int memberId);
+    MemberPointTotalResponse getMemberPointTotalResponse(long memberId);
 
     /**
      * 회원 적립금 적립/사용 내역 조회
@@ -80,7 +80,7 @@ public interface MemberPointService {
      *
      * @param memberId 회원 아이디
      */
-    void clearMemberPointTotalCache(int memberId);
+    void clearMemberPointTotalCache(long memberId);
 
     /**
      * 회원 적립금 만료 처리
@@ -107,6 +107,6 @@ public interface MemberPointService {
      * 테스트 전용입니다.
      * @param memberId 회원 아이디
      */
-    void checkMemberPoint(int memberId);
+    void checkMemberPoint(long memberId);
 
 }

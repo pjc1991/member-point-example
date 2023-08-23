@@ -7,10 +7,10 @@ import lombok.Setter;
 @Setter
 public class MemberPointTotalResponse {
 
-    private Integer memberId;
+    private long memberId;
     private Integer totalPoint;
 
-    public MemberPointTotalResponse(Integer memberId, Integer totalPoint) {
+    public MemberPointTotalResponse(long memberId, Integer totalPoint) {
         this.memberId = memberId;
         this.totalPoint = totalPoint;
     }

@@ -24,7 +24,7 @@ public class MemberPointController {
     @GetMapping("/member/{memberId}/point/total")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public MemberPointTotalResponse getMemberPointTotal(@PathVariable int memberId) {
+    public MemberPointTotalResponse getMemberPointTotal(@PathVariable long memberId) {
         return memberPointService.getMemberPointTotalResponse(memberId);
     }
 
@@ -39,7 +39,7 @@ public class MemberPointController {
     @GetMapping("/member/{memberId}/point")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public Page<MemberPointEventResponse> getMemberPointEvents(@PathVariable int memberId, @RequestBody(required = false) MemberPointEventSearch search) {
+    public Page<MemberPointEventResponse> getMemberPointEvents(@PathVariable long memberId, @RequestBody(required = false) MemberPointEventSearch search) {
 
         if (search == null) {
             search = new MemberPointEventSearch();
@@ -59,7 +59,7 @@ public class MemberPointController {
     @PostMapping("/member/{memberId}/point/earn")
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
-    public MemberPointEventResponse earnMemberPoint(@PathVariable int memberId, @RequestBody MemberPointCreateRequest memberPointCreate) {
+    public MemberPointEventResponse earnMemberPoint(@PathVariable long memberId, @RequestBody MemberPointCreateRequest memberPointCreate) {
         memberPointCreate.setMemberId(memberId);
         return memberPointService.earnMemberPointResponse(memberPointCreate);
     }
@@ -75,7 +75,7 @@ public class MemberPointController {
     @PostMapping("/member/{memberId}/point/use")
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
-    public MemberPointEventResponse useMemberPoint(@PathVariable int memberId, @RequestBody MemberPointUseRequest memberPointUseRequest) {
+    public MemberPointEventResponse useMemberPoint(@PathVariable long memberId, @RequestBody MemberPointUseRequest memberPointUseRequest) {
         memberPointUseRequest.setMemberId(memberId);
         return memberPointService.useMemberPointResponse(memberPointUseRequest);
     }
