@@ -89,6 +89,13 @@ public class MemberPointDetail {
     private LocalDateTime expireAt;
 
     /**
+     * 회원 적립금 상세 내역 타입
+     */
+    @Column(name = "TYPE", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private MemberPointDetailType type;
+
+    /**
      * 회원 적립금 적립 발생에 대한 상세 내역을 생성합니다.
      *
      * @param earnEvent 회원 적립금 적립 이벤트
@@ -104,6 +111,7 @@ public class MemberPointDetail {
         memberPointDetail.amount = earnEvent.getAmount();
         memberPointDetail.createdAt = earnEvent.getCreatedAt();
         memberPointDetail.expireAt = earnEvent.getExpireAt();
+        memberPointDetail.type = MemberPointDetailType.EARN;
         earnEvent.getMemberPointDetails().add(memberPointDetail);
 
         return memberPointDetail;
@@ -132,6 +140,7 @@ public class MemberPointDetail {
         memberPointDetail.amount = -useAmount;
         memberPointDetail.createdAt = LocalDateTime.now();
         memberPointDetail.expireAt = remain.getExpireAt();
+        memberPointDetail.type = MemberPointDetailType.USE;
         useEvent.getMemberPointDetails().add(memberPointDetail);
 
         return memberPointDetail;
@@ -164,12 +173,30 @@ public class MemberPointDetail {
         memberPointDetailExpire.amount = -remain.getRemain();
         memberPointDetailExpire.createdAt = expireEvent.getCreatedAt();
         memberPointDetailExpire.expireAt = expireEvent.getExpireAt();
-
         memberPointDetailExpire.memberPointEvent = expireEvent;
+        memberPointDetailExpire.type = MemberPointDetailType.EXPIRE;
         expireEvent.getMemberPointDetails().add(memberPointDetailExpire);
 
         return memberPointDetailExpire;
 
+    }
+
+    /**
+     * 이미 사용된 회원 적립금 상세 내역을 사용 취소합니다.
+     * @param detail
+     * @return
+     */
+    public static MemberPointDetail rollbackMemberPointDetail(MemberPointDetail detail, MemberPointEvent event) {
+        MemberPointDetail rollbackDetail = new MemberPointDetail();
+        rollbackDetail.memberPointEvent = event;
+        rollbackDetail.memberPointDetailGroupId = detail.memberPointDetailGroupId;
+        rollbackDetail.memberPointDetailRefundId = detail.id;
+        rollbackDetail.amount = -detail.amount;
+        rollbackDetail.createdAt = LocalDateTime.now();
+        rollbackDetail.expireAt = detail.expireAt;
+        rollbackDetail.type = MemberPointDetailType.CANCEL;
+
+        return rollbackDetail;
     }
 
     /**
@@ -198,5 +225,15 @@ public class MemberPointDetail {
     protected void setExpireAt(LocalDateTime localDateTime) {
         log.warn("회원 적립금 상세의 만료 시점을 변경합니다. 변경할 만료 시점: {}", localDateTime);
         this.expireAt = localDateTime;
+    }
+
+    /**
+     * 회원 적립금 상세 내역의 타입 열거형입니다.
+     */
+    public enum MemberPointDetailType {
+        USE,
+        EARN,
+        EXPIRE,
+        CANCEL
     }
 }

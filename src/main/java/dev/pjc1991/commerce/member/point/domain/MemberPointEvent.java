@@ -172,11 +172,12 @@ public class MemberPointEvent {
         this.getMemberPointDetails().forEach(memberPointDetail -> memberPointDetail.setExpireAt(localDateTime));
     }
 
+    /**
+     * 회원 적립금 이벤트 종류
+     */
     public enum MemberPointEventType {
         EARN, // 적립
         USE, // 사용
         EXPIRE, // 만료
-        REFUND, // 환불
-        CANCEL // 취소
     }
 }

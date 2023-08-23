@@ -112,6 +112,17 @@ public class MemberPointServiceImpl implements MemberPointService {
         return memberPointEventRepositoryCustom.getMemberPointEvents(search);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public MemberPointEvent getMemberPointEvent(long memberPointEventId) {
+        return memberPointEventRepository.findById(memberPointEventId).orElseThrow(() -> new MemberPointEventNotFound("회원 적립금 이벤트가 존재하지 않습니다."));
+    }
+
+    @Override
+    public MemberPointEventResponse getMemberPointEventResponse(long memberPointEventId) {
+        return new MemberPointEventResponse(self.getMemberPointEvent(memberPointEventId));
+    }
+
     /**
      * 회원 적립금 적립/사용 내역 조회 (Response)
      * 적립금 적립/사용 내역을 조회해서, DTO 형태로 반환합니다.
@@ -143,8 +154,6 @@ public class MemberPointServiceImpl implements MemberPointService {
 
         // 회원 적립금 이벤트를 생성합니다.
         MemberPointEvent event = MemberPointEvent.earnMemberPoint(memberPointCreate);
-        log.info("회원 적립금 이벤트를 생성합니다. 이벤트 아이디 : {}", event.getId());
-        log.info("회원 ID : {}", event.getMember().getId());
         event = memberPointEventRepository.save(event);
 
         // 회원 적립금 상세 내역을 생성합니다.
@@ -227,6 +236,56 @@ public class MemberPointServiceImpl implements MemberPointService {
         return new MemberPointEventResponse(useMemberPoint(memberPointUse));
     }
 
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = "memberPointTotal", key = "#memberPointUse.memberId")
+    })
+    public MemberPointEvent rollbackMemberPointUse(long memberPointEventId) {
+        // 회원 적립금 이벤트를 조회합니다.
+        MemberPointEvent event = memberPointEventRepository.findById(memberPointEventId).orElseThrow(() -> new MemberPointEventNotFound("회원 적립금 이벤트가 존재하지 않습니다."));
+
+        // 회원 적립금 이벤트의 타입이 사용이 아니면 예외를 발생시킵니다.
+        if (event.getType() != MemberPointEvent.MemberPointEventType.USE) {
+            throw new BadMemberPointTypeException("회원 적립금 이벤트의 타입이 사용이 아닙니다.");
+        }
+
+        // 회원 적립금 이벤트의 상세 내역을 합산합니다.
+        int usedAmount = event.getMemberPointDetails().stream().mapToInt(MemberPointDetail::getAmount).sum();
+
+        // 회원 적립금 이벤트의 상세 내역의 합산 금액이 0 이라면 이미 사용 취소된 이벤트입니다.
+        if (usedAmount == 0) {
+            throw new MemberPointAlreadyRollbackedException("이미 롤백된 회원 적립금 이벤트입니다.");
+        }
+
+        // 회원 적립금 이벤트의 상세 내역의 합산 금액이 0 보다 크다면 데이터 처리가 잘못된 것입니다.
+        if (usedAmount > 0) {
+            throw new MemberPointAmountBrokenException("회원 적립금 이벤트의 상세 내역의 합산 금액이 0 보다 큽니다.");
+        }
+
+
+        // 회원 적립금 이벤트의 상세 내역을 조회해, 적립금 사용 내역을 순회하며 롤백 상세 내역을 생성합니다.
+        // 롤백 상세 내역은 적립금 사용 내역의 반대로 생성하며, 적립금 사용 이벤트의 상세 내역 그룹 아이디를 참조합니다.
+        List<MemberPointDetail> rollbacks = event.getMemberPointDetails().stream().map(detail -> MemberPointDetail.rollbackMemberPointDetail(detail, event)).toList();
+        memberPointDetailRepository.saveAll(rollbacks);
+
+        return event;
+    }
+
+    /**
+     * 회원 적립금 사용 취소
+     * 사용된 적립금 사용을 취소합니다. 환불이 아니고 롤백이기 때문에, MemberPointEvent 의 상세 내역을 삭제하지 않습니다.
+     * @param memberPointEventId
+     * @return 회원 적립금 사용 이벤트
+     */
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = "memberPointTotal", key = "#memberId")
+    })
+    public MemberPointEventResponse rollbackMemberPointUseResponse(long memberId, long memberPointEventId) {
+        return new MemberPointEventResponse(rollbackMemberPointUse(memberPointEventId));
+
+    }
+
     /**
      * 회원 적립금 합계의 캐시를 초기화합니다.
      * @param memberId 회원 아이디
@@ -294,9 +353,10 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 만료 시점을 변경합니다.
         memberPointEvent.setExpireAt(expireAt);
 
-        // 회원 적립금 이벤트의 상세 내역 그룹 아이디를 찾습니다. 적립 이벤트에는 상세 내역 (MemberPointDetail) 이 하나만 존재합니다.
-        Long memberPointDetailGroupId = memberPointEvent.getMemberPointDetails().stream().findFirst()
-                .orElseThrow(() -> new MemberPointDetailNotFoundException("회원 적립금 상세 내역이 존재하지 않습니다.")).getId();
+        // 회원 적립금 이벤트의 상세 내역 그룹 아이디를 찾습니다.
+        // type 이 EARN 인 이벤트는 상세 내역 그룹이 하나만 존재합니다.
+        Long memberPointDetailGroupId = memberPointEvent.getMemberPointDetails().stream().filter(memberPointDetail -> memberPointDetail.getType() == MemberPointDetail.MemberPointDetailType.EARN)
+                .findFirst().orElseThrow(() -> new MemberPointDetailNotFoundException("회원 적립금 상세 내역이 존재하지 않습니다.")).getId();
 
         // 회원 적립금 이벤트의 상세 내역 그룹을 모두 조회합니다.
         List<MemberPointDetail> memberPointDetailGroups = memberPointDetailRepository.findByMemberPointDetailGroupId(memberPointDetailGroupId);

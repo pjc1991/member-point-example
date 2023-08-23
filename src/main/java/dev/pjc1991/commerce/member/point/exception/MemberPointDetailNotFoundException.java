@@ -5,7 +5,7 @@ import java.io.Serial;
 /**
  * 회원 적립금 상세 내역이 존재하지 않는 경우 발생하는 예외
  */
-public class MemberPointDetailNotFoundException extends IllegalArgumentException implements MemberPointExceptionInterface {
+public class MemberPointDetailNotFoundException extends IllegalArgumentException {
 
     @Serial
     private static final long serialVersionUID = 1L;

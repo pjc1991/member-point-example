@@ -34,6 +34,23 @@ public interface MemberPointService {
     Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search);
 
     /**
+     * 회원 적립금 적립/사용 단건 내역 조회
+     *
+     * @param memberPointEventId 회원 적립금 이벤트 아이디
+     * @return 회원 적립금 적립/사용 내역 (MemberPointEvent)
+     */
+    MemberPointEvent getMemberPointEvent(long memberPointEventId);
+
+    /**
+     * 회원 적립금 적립/사용 단건 내역 조회 (Response)
+     *
+     * @param memberPointEventId 회원 적립금 이벤트 아이디
+     * @return 회원 적립금 적립/사용 내역 (MemberPointEvent)
+     */
+    MemberPointEventResponse getMemberPointEventResponse(long memberPointEventId);
+
+
+    /**
      * 회원 적립금 적립/사용 내역 조회 (Response)
      *
      * @param search (MemberPointEventSearch) page : 페이지 번호, size : 페이지 사이즈, memberId : 회원 아이디
@@ -74,6 +91,22 @@ public interface MemberPointService {
     MemberPointEventResponse useMemberPointResponse(MemberPointUseRequest memberPointUse);
 
     /**
+     * 회원 적립금 사용을 롤백합니다. (Response)
+     * 회원 적립금 사용 이벤트를 취소하고, 적립금을 다시 사용 가능한 상태로 돌립니다.
+     *
+     * @param memberPointEventId 회원 적립금 이벤트 아이디
+     */
+    MemberPointEvent rollbackMemberPointUse(long memberPointEventId);
+
+    /**
+     * 회원 적립금 사용을 롤백합니다. (Response)
+     * 회원 적립금 사용 이벤트를 취소하고, 적립금을 다시 사용 가능한 상태로 돌립니다.
+     *
+     * @param memberPointEventId 회원 적립금 이벤트 아이디
+     */
+    MemberPointEventResponse rollbackMemberPointUseResponse(long memberId, long memberPointEventId);
+
+    /**
      * 회원 적립금 캐시 초기화
      * 회원 적립금의 캐시를 초기화합니다.
      * 현재 테스트에서 사용하고 있습니다.
@@ -105,6 +138,7 @@ public interface MemberPointService {
      * 회원 적립금 일치성 검사 (테스트)
      * 해당 회원의 적립금이 선입선출 형태로 사용되었는지 확인합니다.
      * 테스트 전용입니다.
+     *
      * @param memberId 회원 아이디
      */
     void checkMemberPoint(long memberId);

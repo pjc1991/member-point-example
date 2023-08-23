@@ -79,4 +79,15 @@ public class MemberPointController {
         memberPointUseRequest.setMemberId(memberId);
         return memberPointService.useMemberPointResponse(memberPointUseRequest);
     }
+
+    /**
+     * 회원 적립금 사용 취소
+     */
+    @DeleteMapping("/member/point/{memberPointEventId}")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public MemberPointEventResponse rollBackMemberPointUse(@PathVariable long memberPointEventId) {
+        MemberPointEventResponse response = memberPointService.getMemberPointEventResponse(memberPointEventId);
+        return memberPointService.rollbackMemberPointUseResponse(response.getMemberId(), memberPointEventId);
+    }
 }
