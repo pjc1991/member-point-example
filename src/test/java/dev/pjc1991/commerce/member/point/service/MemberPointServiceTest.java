@@ -48,6 +48,10 @@ class MemberPointServiceTest {
     EntityManager entityManager;
 
 
+    /**
+     * 테스트가 시작되기 전에 실행됩니다.
+     * 더미 데이터를 생성합니다.
+     */
     @BeforeEach
     void setup() {
         // 테스트가 시작되기 전에 더미 데이터를 생성합니다.
@@ -60,6 +64,10 @@ class MemberPointServiceTest {
     }
 
 
+    /**
+     * 테스트를 위해 더미 회원 데이터를 생성합니다.
+     * @return 더미 회원
+     */
     private Member createDummyMember() {
         MemberSignupRequest memberSignupRequest = new MemberSignupRequest();
         memberSignupRequest.setName(UUID.randomUUID().toString().substring(0, 10));
