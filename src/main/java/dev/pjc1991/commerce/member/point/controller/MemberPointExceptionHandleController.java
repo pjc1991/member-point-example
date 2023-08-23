@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * 회원 적립금 도메인의 예외를 처리하기 위한 컨트롤러 어드바이스
  *
- * @see MemberPointExceptionInterface
  */
 @ControllerAdvice
 @RequiredArgsConstructor

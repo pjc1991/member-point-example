@@ -1,6 +1,5 @@
 package dev.pjc1991.commerce.dto;
 
-import dev.pjc1991.commerce.member.point.exception.MemberPointExceptionInterface;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,8 +15,8 @@ public class ErrorResponse {
         this.message = "알 수 없는 에러가 발생했습니다.";
     }
 
-    public ErrorResponse(MemberPointExceptionInterface exception) {
-        this.name = exception.getName();
+    public ErrorResponse(Throwable exception) {
+        this.name = exception.getClass().getSimpleName();
         this.message = exception.getMessage();
     }
 }
