@@ -8,6 +8,6 @@ import lombok.ToString;
 @Setter
 @ToString
 public class MemberPointCreateRequest {
-    private Integer memberId;
+    private Long memberId;
     private Integer amount;
 }

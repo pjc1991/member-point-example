@@ -10,5 +10,5 @@ import java.util.Optional;
 @Repository
 public interface MemberPointDetailRepository extends JpaRepository<MemberPointDetail, Long> {
     List<MemberPointDetail> findByMemberPointDetailGroupId(Long memberPointDetailGroupId);
-    long countByMemberPointEventMemberId(Integer memberId);
+    long countByMemberPointEventMemberId(long memberId);
 }

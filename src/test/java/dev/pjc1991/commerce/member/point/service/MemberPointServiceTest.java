@@ -469,7 +469,7 @@ class MemberPointServiceTest {
      * @param memberId 적립할 회원 ID
      * @return 적립금 생성 요청 DTO
      */
-    private static MemberPointUseRequest getTestMemberPointUseRequest(int memberId, int amount) {
+    private static MemberPointUseRequest getTestMemberPointUseRequest(long memberId, int amount) {
         MemberPointUseRequest memberPointUseRequest = new MemberPointUseRequest();
         memberPointUseRequest.setMemberId(memberId);
         memberPointUseRequest.setAmount(amount);
@@ -483,7 +483,7 @@ class MemberPointServiceTest {
      * @param memberId 사용할 회원 ID
      * @return 적립금 사용 요청 DTO
      */
-    private static MemberPointCreateRequest getTestMemberPointCreateRequest(int memberId, int amount) {
+    private static MemberPointCreateRequest getTestMemberPointCreateRequest(long memberId, int amount) {
         MemberPointCreateRequest memberPointCreateRequest = new MemberPointCreateRequest();
         memberPointCreateRequest.setMemberId(memberId);
         memberPointCreateRequest.setAmount(amount);
@@ -498,7 +498,7 @@ class MemberPointServiceTest {
      * @param size     페이지 크기
      * @return 적립/사용 내역 검색 DTO
      */
-    private static MemberPointEventSearch getMemberPointEventSearch(int memberId, int page, int size) {
+    private static MemberPointEventSearch getMemberPointEventSearch(long memberId, int page, int size) {
         MemberPointEventSearch search = new MemberPointEventSearch();
         search.setMemberId(memberId);
         search.setPage(page);

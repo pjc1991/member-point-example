@@ -1,6 +1,5 @@
 package dev.pjc1991.commerce.member.point.dto;
 
-import dev.pjc1991.commerce.member.point.domain.MemberPointDetail;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -31,7 +30,7 @@ public class MemberPointDetailRemain {
     private LocalDateTime createdAt;
 
     // 회원 아이디
-    private Integer memberId;
+    private Long memberId;
 
     public MemberPointDetailRemain(
             Long MemberPointDetailGroupId,
@@ -50,7 +49,7 @@ public class MemberPointDetailRemain {
             Integer remain,
             LocalDateTime expireAt,
             LocalDateTime createdAt,
-            Integer memberId
+            long memberId
     ) {
         this.MemberPointDetailGroupId = MemberPointDetailGroupId;
         this.remain = remain;
@@ -66,7 +65,7 @@ public class MemberPointDetailRemain {
             Integer used,
             LocalDateTime expireAt,
             LocalDateTime createdAt,
-            Integer memberId
+            long memberId
     ){
         this.MemberPointDetailGroupId = MemberPointDetailGroupId;
         this.remain = remain;

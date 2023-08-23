@@ -2,6 +2,10 @@ package dev.pjc1991.commerce.member.point.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.pjc1991.commerce.member.point.dto.MemberPointDetailRemain;
+import dev.pjc1991.commerce.member.point.exception.BadMemberPointAmountException;
+import dev.pjc1991.commerce.member.point.exception.BadMemberPointExpireDateException;
+import dev.pjc1991.commerce.member.point.exception.MemberPointDetailNotFoundException;
+import dev.pjc1991.commerce.member.point.exception.MemberPointEventNotFound;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -91,12 +95,8 @@ public class MemberPointDetail {
      * @return 회원 적립금 적립 상세 내역
      */
     public static MemberPointDetail earnMemberPointDetail(MemberPointEvent earnEvent) {
-        if (earnEvent == null) {
-            throw new IllegalArgumentException("회원 적립금 적립 이벤트가 null입니다.");
-        }
-
         if (earnEvent.getAmount() < 0) {
-            throw new IllegalArgumentException("회원 적립금 적립 이벤트의 적립/사용량이 음수입니다.");
+            throw new BadMemberPointAmountException("회원 적립금 적립 이벤트의 적립/사용량이 음수입니다.");
         }
 
         MemberPointDetail memberPointDetail = new MemberPointDetail();
@@ -119,11 +119,11 @@ public class MemberPointDetail {
      */
     public static MemberPointDetail useMemberPointDetail(MemberPointEvent useEvent, MemberPointDetailRemain remain, int useAmount) {
         if (useEvent == null) {
-            throw new IllegalArgumentException("회원 적립금 사용 이벤트가 null 입니다.");
+            throw new MemberPointEventNotFound("회원 적립금 사용 이벤트가 null 입니다.");
         }
 
         if (useAmount <= 0) {
-            throw new IllegalArgumentException("사용 금액은 0 이하일 수 없습니다.");
+            throw new BadMemberPointAmountException("사용 금액은 0 이하일 수 없습니다.");
         }
 
         MemberPointDetail memberPointDetail = new MemberPointDetail();
@@ -147,15 +147,15 @@ public class MemberPointDetail {
      */
     public static MemberPointDetail expireMemberPointDetail(MemberPointDetailRemain remain, MemberPointEvent expireEvent) {
         if (remain == null) {
-            throw new IllegalArgumentException("회원 적립금 상세 내역이 null 입니다.");
+            throw new MemberPointDetailNotFoundException("회원 적립금 상세 내역이 null 입니다.");
         }
 
         if (expireEvent == null) {
-            throw new IllegalArgumentException("회원 적립금 만료 이벤트가 null 입니다.");
+            throw new MemberPointEventNotFound("회원 적립금 만료 이벤트가 null 입니다.");
         }
 
         if (remain.getExpireAt().isAfter(LocalDateTime.now())) {
-            throw new IllegalArgumentException("회원 적립금 상세 내역의 만료 시점이 현재 시점보다 미래입니다.");
+            throw new BadMemberPointExpireDateException("회원 적립금 상세 내역의 만료 시점이 현재 시점보다 미래입니다.");
         }
 
         MemberPointDetail memberPointDetailExpire = new MemberPointDetail();

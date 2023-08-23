@@ -7,5 +7,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MemberPointDetailSearch extends PageSearch {
-    private Integer memberId;
+    private Long memberId;
 }

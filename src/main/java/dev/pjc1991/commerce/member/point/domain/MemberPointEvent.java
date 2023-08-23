@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.pjc1991.commerce.member.point.dto.MemberPointCreateRequest;
 import dev.pjc1991.commerce.member.point.dto.MemberPointDetailRemain;
 import dev.pjc1991.commerce.member.point.dto.MemberPointUseRequest;
+import dev.pjc1991.commerce.member.point.exception.BadMemberPointAmountException;
+import dev.pjc1991.commerce.member.point.exception.BadMemberPointExpireDateException;
+import dev.pjc1991.commerce.member.point.exception.MemberPointDetailNotFoundException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -44,7 +47,7 @@ public class MemberPointEvent {
      * 회원 ID
      */
     @Column(name = "MEMBER_ID", nullable = false)
-    private int memberId;
+    private long memberId;
 
     /**
      * 회원 적립금 적립/사용 금액
@@ -95,11 +98,7 @@ public class MemberPointEvent {
      */
     public static MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate) {
         if (memberPointCreate.getAmount() < 0) {
-            throw new RuntimeException("적립금 적립은 음수가 될 수 없습니다.");
-        }
-
-        if (memberPointCreate.getMemberId() == null) {
-            throw new RuntimeException("회원 ID가 null입니다.");
+            throw new BadMemberPointAmountException("적립금 적립은 음수가 될 수 없습니다.");
         }
 
         MemberPointEvent memberPointEvent = new MemberPointEvent();
@@ -119,7 +118,7 @@ public class MemberPointEvent {
      */
     public static MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUse) {
         if (memberPointUse.getAmount() < 0) {
-            throw new RuntimeException("적립금 사용은 음수가 될 수 없습니다.");
+            throw new BadMemberPointAmountException("적립금 사용은 음수가 될 수 없습니다.");
         }
         MemberPointEvent memberPointEvent = new MemberPointEvent();
         memberPointEvent.memberId = memberPointUse.getMemberId();
@@ -142,11 +141,11 @@ public class MemberPointEvent {
     public static MemberPointEvent expireMemberPoint(MemberPointDetailRemain remain) {
 
         if (remain == null) {
-            throw new RuntimeException("만료될 회원 적립금 상세 내역이 null입니다.");
+            throw new MemberPointDetailNotFoundException("만료될 회원 적립금 상세 내역이 null입니다.");
         }
 
         if (remain.getExpireAt().isAfter(LocalDateTime.now())) {
-            throw new RuntimeException("만료될 회원 적립금 상세 내역의 만료 시점이 현재 시점보다 미래입니다.");
+            throw new BadMemberPointExpireDateException("만료될 회원 적립금 상세 내역의 만료 시점이 현재 시점보다 미래입니다.");
         }
 
         MemberPointEvent memberPointEvent = new MemberPointEvent();
@@ -173,19 +172,10 @@ public class MemberPointEvent {
     }
 
     public enum MemberPointEventType {
-
-        EARN("적립"),
-        USE("사용"),
-        EXPIRE("만료"),
-        REFUND("환불"),
-        CANCEL("사용 취소");
-
-        private final String description;
-
-        MemberPointEventType(String description) {
-            this.description = description;
-        }
-
-
+        EARN, // 적립
+        USE, // 사용
+        EXPIRE, // 만료
+        REFUND, // 환불
+        CANCEL // 취소
     }
 }

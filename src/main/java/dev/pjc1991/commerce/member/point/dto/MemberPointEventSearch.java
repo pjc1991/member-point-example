@@ -9,5 +9,5 @@ import lombok.Setter;
 public class MemberPointEventSearch extends PageSearch {
 
     // 회원 아이디
-    private Integer memberId;
+    private Long memberId;
 }
