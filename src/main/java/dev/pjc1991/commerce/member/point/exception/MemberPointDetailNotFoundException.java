@@ -14,8 +14,4 @@ public class MemberPointDetailNotFoundException extends IllegalArgumentException
         super(message);
     }
 
-    public MemberPointDetailNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

@@ -15,8 +15,4 @@ public class BadMemberPointAmountException extends IllegalArgumentException impl
         super(message);
     }
 
-    public BadMemberPointAmountException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

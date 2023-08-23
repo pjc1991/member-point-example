@@ -15,8 +15,4 @@ public class BadMemberPointExpireDateException extends IllegalArgumentException 
         super(message);
     }
 
-    public BadMemberPointExpireDateException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

@@ -1,9 +1,5 @@
 package dev.pjc1991.commerce.member.point.exception;
 
-
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
 import java.io.Serial;
 
 /**
@@ -19,7 +15,4 @@ public class MemberPointUseInfiniteLoopException extends RuntimeException implem
         super(message);
     }
 
-    public MemberPointUseInfiniteLoopException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

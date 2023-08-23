@@ -14,7 +14,4 @@ public class BadMemberPointTypeException extends IllegalArgumentException implem
         super(message);
     }
 
-    public BadMemberPointTypeException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

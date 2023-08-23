@@ -14,7 +14,4 @@ public class MemberPointEventNotFound extends RuntimeException implements Member
         super(message);
     }
 
-    public MemberPointEventNotFound(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

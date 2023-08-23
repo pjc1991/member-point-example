@@ -14,8 +14,4 @@ public class MemberPointNoFirstInFirstOutException extends IllegalStateException
     public MemberPointNoFirstInFirstOutException(String message) {
         super(message);
     }
-
-    public MemberPointNoFirstInFirstOutException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }
