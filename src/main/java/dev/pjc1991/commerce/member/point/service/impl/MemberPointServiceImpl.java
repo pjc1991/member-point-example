@@ -45,11 +45,11 @@ public class MemberPointServiceImpl implements MemberPointService {
     /**
      * 생성자 주입 방식을 사용합니다.
      * 자가 주입을 위해 @Lazy 를 사용합니다.
-     * @param memberPointEventRepository
-     * @param memberPointEventRepositoryCustom
-     * @param memberPointDetailRepository
-     * @param memberPointDetailRepositoryCustom
-     * @param self
+     * @param memberPointEventRepository 회원 적립금 이벤트 레포지토리
+     * @param memberPointEventRepositoryCustom 회원 적립금 이벤트 레포지토리 커스텀 (QueryDSL)
+     * @param memberPointDetailRepository 회원 적립금 상세 내역 레포지토리
+     * @param memberPointDetailRepositoryCustom 회원 적립금 상세 내역 레포지토리 커스텀 (QueryDSL)
+     * @param self 자가 주입된 인스턴스
      */
     @Lazy
     public MemberPointServiceImpl(
