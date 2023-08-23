@@ -144,8 +144,6 @@ public class MemberPointServiceImpl implements MemberPointService {
 
         // 회원 적립금 이벤트를 생성합니다.
         MemberPointEvent event = MemberPointEvent.earnMemberPoint(memberPointCreate);
-        log.info("회원 적립금 이벤트를 생성합니다. 이벤트 아이디 : {}", event.getId());
-        log.info("회원 ID : {}", event.getMember().getId());
         event = memberPointEventRepository.save(event);
 
         // 회원 적립금 상세 내역을 생성합니다.
