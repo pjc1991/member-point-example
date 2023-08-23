@@ -6,19 +6,19 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import java.io.Serial;
 
 /**
- * 회원 적립금 생성/사용 요청시 잘못된 적립금 금액이 들어온 경우 발생하는 예외
+ * 회원 적립금 만료일이 비정상적으로 설정 되어있을 경우 발생하는 예외
  */
 @ResponseStatus(HttpStatus.BAD_REQUEST)
-public class BadMemberPointAmountException extends IllegalArgumentException {
+public class BadMemberPointExpireDateException extends IllegalArgumentException {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public BadMemberPointAmountException(String message) {
+    public BadMemberPointExpireDateException(String message) {
         super(message);
     }
 
-    public BadMemberPointAmountException(String message, Throwable cause) {
+    public BadMemberPointExpireDateException(String message, Throwable cause) {
         super(message, cause);
     }
 }
