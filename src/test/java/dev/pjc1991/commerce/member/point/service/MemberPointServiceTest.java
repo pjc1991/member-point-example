@@ -27,6 +27,9 @@ import org.springframework.util.StopWatch;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -545,6 +548,54 @@ class MemberPointServiceTest {
         assertThrows(MemberPointAlreadyRollbackedException.class, () -> {
             MemberPointEventResponse rollbackAgain = memberPointService.rollbackMemberPointUseResponse(TEST_MEMBER_ID, use.getId());
         });
+    }
+
+    @Test
+    void memberPointUseConcurrencyTest() {
+        // given
+
+        // 적립금을 적립합니다.
+        MemberPointEvent earn = memberPointService.earnMemberPoint(getTestMemberPointCreateRequest(TEST_MEMBER_ID, 10000));
+        log.info("적립금 적립 금액 : {}", earn.getAmount());
+        // 적립 금액을 확인합니다.
+        int before = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+        log.info("적립금 적립 이전 금액 : {}", before);
+
+        long memberPointDetailId = earn.getMemberPointDetails().stream().findFirst().orElseThrow().getMemberPointDetailGroupId();
+
+        // 다른 스레드에서 적립금이 조회 가능하도록 캐시를 비웁니다.
+        entityManager.flush();
+        entityManager.clear();
+
+        // 여러 스레드를 동시에 생성
+        int threadCount = 1;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        // when
+
+        // 적립금을 사용합니다.
+        for (int i = 0; i < threadCount; i++) {
+            // 각 스레드에서 적립금을 사용합니다.
+            executorService.execute(() -> {
+                memberPointDetailRepository.findById(memberPointDetailId).orElseThrow();
+                log.info("적립금 사용 요청 : {}", Thread.currentThread().getName());
+                MemberPointEvent event = memberPointService.useMemberPoint(getTestMemberPointUseRequest(TEST_MEMBER_ID, 100));
+                log.info("적립금 사용 이벤트 : {}", event.getId());
+
+                latch.countDown();
+            });
+        }
+
+        latch.countDown();
+        // then
+
+        // 금액이 정상적인지 확인합니다.
+        int after = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+        log.info("적립금 적립 이후 금액 : {}", before);
+        log.info("적립금 사용 이후 금액 : {}", after);
+
+        assertEquals(before - 100 * threadCount, after);
     }
 
 
