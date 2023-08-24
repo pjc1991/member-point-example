@@ -1,7 +1,6 @@
 package dev.pjc1991.commerce.member.point.service.impl;
 
 import dev.pjc1991.commerce.member.domain.Member;
-import dev.pjc1991.commerce.member.exception.MemberNotFoundException;
 import dev.pjc1991.commerce.member.point.domain.MemberPointDetail;
 import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.dto.*;
@@ -11,7 +10,7 @@ import dev.pjc1991.commerce.member.point.repository.MemberPointDetailRepositoryC
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepositoryCustom;
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepository;
 import dev.pjc1991.commerce.member.point.service.MemberPointService;
-import dev.pjc1991.commerce.member.repository.MemberRepository;
+import dev.pjc1991.commerce.member.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
@@ -37,9 +36,10 @@ public class MemberPointServiceImpl implements MemberPointService {
     private final MemberPointEventRepositoryCustom memberPointEventRepositoryCustom;
     private final MemberPointDetailRepository memberPointDetailRepository;
     private final MemberPointDetailRepositoryCustom memberPointDetailRepositoryCustom;
+    private final MemberService memberService;
+
     private final MemberPointService self;
 
-    private final MemberRepository memberRepository;
 
 
     /**
@@ -49,6 +49,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @param memberPointEventRepositoryCustom 회원 적립금 이벤트 레포지토리 커스텀 (QueryDSL)
      * @param memberPointDetailRepository 회원 적립금 상세 내역 레포지토리
      * @param memberPointDetailRepositoryCustom 회원 적립금 상세 내역 레포지토리 커스텀 (QueryDSL)
+     * @param memberService 회원 서비스
      * @param self 자가 주입된 인스턴스
      */
     @Lazy
@@ -57,14 +58,14 @@ public class MemberPointServiceImpl implements MemberPointService {
             , MemberPointEventRepositoryCustom memberPointEventRepositoryCustom
             , MemberPointDetailRepository memberPointDetailRepository
             , MemberPointDetailRepositoryCustom memberPointDetailRepositoryCustom
-            , MemberRepository memberRepository
+            , MemberService memberService
             , MemberPointService self
     ) {
         this.memberPointEventRepository = memberPointEventRepository;
         this.memberPointEventRepositoryCustom = memberPointEventRepositoryCustom;
         this.memberPointDetailRepository = memberPointDetailRepository;
         this.memberPointDetailRepositoryCustom = memberPointDetailRepositoryCustom;
-        this.memberRepository = memberRepository;
+        this.memberService = memberService;
         this.self = self;
     }
 
@@ -79,8 +80,8 @@ public class MemberPointServiceImpl implements MemberPointService {
     @Transactional(readOnly = true)
     @Cacheable(value = "memberPointTotal", key = "#memberId")
     public int getMemberPointTotal(long memberId) {
-        // 회원이 존재하지 않으면 예외를 발생시킵니다.
-        memberRepository.findById(memberId).orElseThrow(() -> new MemberNotFoundException("회원이 존재하지 않습니다."));
+        // 회원이 존재하지 않으면 회원 서비스에서 예외를 발생시킵니다.
+        memberService.getMemberReferenceById(memberId);
         return memberPointDetailRepositoryCustom.getMemberPointTotal(memberId);
     }
 
@@ -107,8 +108,8 @@ public class MemberPointServiceImpl implements MemberPointService {
     @Override
     @Transactional(readOnly = true)
     public Page<MemberPointEvent> getMemberPointEvents(MemberPointEventSearch search) {
-        // 회원이 존재하지 않으면 예외를 발생시킵니다.
-        memberRepository.findById(search.getMemberId()).orElseThrow(() -> new MemberNotFoundException("회원이 존재하지 않습니다."));
+        // 회원이 존재하지 않으면 회원 서비스에서 예외를 발생시킵니다.
+        memberService.getMemberReferenceById(search.getMemberId());
         return memberPointEventRepositoryCustom.getMemberPointEvents(search);
     }
 
@@ -149,7 +150,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     })
     public MemberPointEvent earnMemberPoint(MemberPointCreateRequest memberPointCreate) {
         // 회원을 조회합니다.
-        Member member = memberRepository.findById(memberPointCreate.getMemberId()).orElseThrow(() -> new MemberNotFoundException("회원이 존재하지 않습니다."));
+        Member member = memberService.getMemberReferenceById(memberPointCreate.getMemberId());
         memberPointCreate.setOwner(member);
 
         // 회원 적립금 이벤트를 생성합니다.
@@ -195,7 +196,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     })
     public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUseRequest) {
         // 회원을 조회합니다.
-        Member member = memberRepository.findById(memberPointUseRequest.getMemberId()).orElseThrow(() -> new MemberNotFoundException("회원이 존재하지 않습니다."));
+        Member member = memberService.getMemberReferenceById(memberPointUseRequest.getMemberId());
         memberPointUseRequest.setOwner(member);
 
         // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
@@ -314,8 +315,8 @@ public class MemberPointServiceImpl implements MemberPointService {
         for (MemberPointDetailRemain memberPointDetailRemain : memberPointDetails) {
             log.info("상세 내역 아이디 : {}, 만료 금액 : {}", memberPointDetailRemain.getMemberPointDetailGroupId(), memberPointDetailRemain.getRemain());
             // 회원 인스턴스가 필요하므로 리퍼런스 인스턴스를 생성합니다.
-            Member member = memberRepository.getReferenceById(memberPointDetailRemain.getMemberId());
-            memberPointDetailRemain.setOwner(member);
+            Member owner = memberService.getMemberReferenceById(memberPointDetailRemain.getMemberId());
+            memberPointDetailRemain.setOwner(owner);
 
             // 적립금 만료 이벤트를 생성합니다.
             MemberPointEvent expireEvent = MemberPointEvent.expireMemberPoint(memberPointDetailRemain);
