@@ -59,6 +59,11 @@ cd member-point-example
 
 ### Docker 를 이용한 방법
 
+다음이 설치되어 있어야 합니다. 
+
+- Docker
+- Docker-Compose
+
 1. 이 리포지터리를 클론하고 루트 디렉토리로 이동합니다.
 
 ```shell
@@ -71,6 +76,10 @@ cd member-point-example
 ```shell
 docker-compose build
 ```
+
+>bin/sh: ./gradlew: /bin/sh^M: bad interpreter: No such file or directory
+
+위의 오류가 발생할 경우 gradlew 파일의 줄바꿈 문자를 LF로 변경하고 다시 빌드합니다.
 
 3. 다음의 명령어로 Docker 컨테이너를 실행합니다.
 
