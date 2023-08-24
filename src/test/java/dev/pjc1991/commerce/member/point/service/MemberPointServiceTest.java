@@ -186,8 +186,8 @@ class MemberPointServiceTest {
         assertEquals(expected, after.getTotalElements());
 
         // 정상적으로 페이징이 되었는지 확인합니다.
-        int modifier = before.getTotalPages() % search.getSize();
-        int expectedSize = modifier == 0 ? search.getSize() : modifier;
+        long modifier = before.getTotalElements() % search.getSize();
+        long expectedSize = modifier == 0 ? search.getSize() : modifier;
         log.info("예상된 페이지 크기 : {}", expectedSize);
         log.info("실제 페이지 크기 : {}", after.getSize());
         assertEquals(expectedSize, after.getSize());
