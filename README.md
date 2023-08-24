@@ -31,6 +31,8 @@
 
 ## 프로젝트 실행 방법
 
+### Gradle 을 이용한 방법
+
 1. 이 리포지터리를 클론하고 루트 디렉토리로 이동합니다.
 
 ```shell
@@ -48,6 +50,42 @@ cd member-point-example
 
 ```shell
 ./gradlew bootRun
+```
+
+### Docker 를 이용한 방법
+
+1. 이 리포지터리를 클론하고 루트 디렉토리로 이동합니다.
+
+```shell
+git clone https://github.com/pjc1991/member-point-example.git &&
+cd member-point-example
+```
+
+2. 다음의 명령어로 Docker 이미지를 빌드합니다.
+
+```shell
+docker-compose build
+```
+
+3. 다음의 명령어로 Docker 컨테이너를 실행합니다.
+
+```shell
+docker-compose up
+# CTRL + C 로 종료합니다.
+```
+
+4. 다음의 명령어로 어플리케이션을 종료합니다. 
+
+```shell
+docker-compose down
+```
+
+5. 어플리케이션에 변화가 있었을 경우 다시 빌드하고 실행합니다.
+
+```shell
+docker-compose down &&
+docker-compose build &&
+docker-compose up
 ```
 
 ---
@@ -233,7 +271,7 @@ curl -X GET http://localhost:8080/member/1/point/total
 
 ---
 
->dev.pjc1991.commerce.member.point.controller.MemberPointController.java
+>dev.pjc1991.commerce.member.point.service.MemberPointService#getMemberPointTotal
 
 구체적인 코드는 해당 경로에서 확인 가능합니다.
 
@@ -351,7 +389,7 @@ curl -X GET http://localhost:8080/member/1/point
 4. 페이징 값을 이용해 페이징 처리를 하고 출력합니다. 
 
 ---
->dev.pjc1991.commerce.member.point.controller.MemberPointController.java
+>dev.pjc1991.commerce.member.point.service.MemberPointService#getMemberPointEvents
 
 구체적인 코드는 해당 경로에서 확인 가능합니다.
 ### API - 회원별 적립금 적립
@@ -403,7 +441,7 @@ curl -X POST http://localhost:8080/member/1/point/earn \
 
 ---
 
->dev.pjc1991.commerce.member.point.controller.MemberPointController.java
+>dev.pjc1991.commerce.member.point.service.MemberPointService#earnMemberPoint
 
 구체적인 코드는 해당 경로에서 확인 가능합니다.
 
@@ -465,7 +503,7 @@ curl -X POST http://localhost:8080/member/1/point/use \
 
 ---
 
->dev.pjc1991.commerce.member.point.controller.MemberPointController.java
+>dev.pjc1991.commerce.member.point.service.MemberPointService#useMemberPoint
 
 구체적인 코드는 해당 경로에서 확인 가능합니다.
 
@@ -501,6 +539,24 @@ curl -X DELETE http://localhost:8080/member/point/1
 - createdAt : 적립일 (LocalDateTime)
 - expireAt : 적립금 만료일 (LocalDateTime)
   - 적립금 사용 내역은 만료일이 없으므로 null로 표현합니다.
+
+---
+
+#### 기능 구조
+
+1. MemberPointEvent 를 조회합니다.
+2. 해당 이벤트의 타입이 USE 가 아니라면 예외를 발생시킵니다.
+3. 해당 이벤트의 MemberPointDetail 을 조회해 Amount 를 합산한 값을 확인합니다. 0 이라면 이미 사용 취소된 상태이므로 예외를 발생시킵니다.
+4. 해당 이벤트의 MemberPointDetail 의 Amount 값에 -1 을 곱한 값을 지닌 MemberPointDetail(타입 CANCEL)을 해당 이벤트에 추가합니다. 
+5. 적립금 이벤트 내역을 조회할 때는 CANCEL 이 포함된 이벤트는 조회되지 않고, 합산금액을 계산할 때는 사용값이 상쇄되어 합산되지 않습니다.
+
+---
+
+>dev.pjc1991.commerce.member.point.service.MemberPointService#rollbackMemberPointUse
+
+구체적인 코드는 해당 경로에서 확인 가능합니다.
+
+---
 ### 스케쥴 - 회원 적립금 만료
 
 매일 00시 00분 00초에 회원 적립금 만료 스케쥴이 실행됩니다.
@@ -547,5 +603,6 @@ public class MemberPointScheduledTasks {
 ---
 
 >dev.pjc1991.commerce.member.point.component.MemberPointScheduledTask.java
+>dev.pjc1991.commerce.member.point.service.MemberPointService#expireMemberPoint
 
 구체적인 코드는 해당 경로에서 확인 가능합니다.
