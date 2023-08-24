@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
         @Index(name = "IDX_MEMBER_POINT_DETAIL_MEMBER_POINT_EVENT_ID", columnList = "MEMBER_POINT_EVENT_ID"),
         @Index(name = "IDX_MEMBER_POINT_DETAIL_MEMBER_POINT_DETAIL_GROUP_ID", columnList = "MEMBER_POINT_DETAIL_GROUP_ID"),
         @Index(name = "IDX_MEMBER_POINT_DETAIL_MEMBER_POINT_DETAIL_REFUND_ID", columnList = "MEMBER_POINT_DETAIL_REFUND_ID"),
+        @Index(name = "IDX_MEMBER_POINT_DETAIL_TYPE", columnList = "TYPE"), 
         @Index(name = "IDX_MEMBER_POINT_DETAIL_CREATED_AT", columnList = "CREATED_AT"),
         @Index(name = "IDX_MEMBER_POINT_DETAIL_EXPIRE_AT", columnList = "EXPIRE_AT")
 }
