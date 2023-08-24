@@ -153,22 +153,6 @@ public class MemberPointExceptionHandleController {
     }
 
     /**
-     * 그 외의 예외를 처리하기 위한 핸들러
-     * 예외를 외부에 완전히 노출할 경우 보안상의 문제가 발생할 수 있으므로
-     * 구체적인 에러 메시지는 노출하지 않습니다.
-     *
-     * @param e 예외
-     * @return 에러 응답
-     */
-    @ExceptionHandler(Exception.class)
-    @ResponseBody
-    public ErrorResponse handleException(HttpServletRequest request, Exception e) {
-        logError(request, e);
-        return new ErrorResponse();
-    }
-
-
-    /**
      * 에러 로그를 남깁니다.
      *
      * @param request 요청
