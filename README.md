@@ -23,6 +23,7 @@
 - Spring Boot
 - Spring Data JPA
 - Spring Data Redis
+- Redisson
 - JUnit 5
 - QueryDSL
 - Blazed-Persistence
@@ -493,17 +494,19 @@ curl -X POST http://localhost:8080/member/1/point/use \
 
 #### 기능 구조
 
-1. MemberPointDetail 을 조회하여, 사용 가능한 금액을 조회합니다.
-2. 조회된 금액이 요청값보다 작다면, 적립금 사용이 불가능하므로 예외를 발생시킵니다.
-3. MemberPointEvent 를 생성합니다. 
-4. MemberPointEvent 와 1:N 관계를 가지는 MemberPointDetail 테이블에도 행을 삽입합니다. 
-5. 이 때, MemberPointDetail 테이블을 MemberPointDetailGroupId 로 그룹화하여 Amount 를 합산합니다. (MemberPointDetailRemain)
-6. 합산값이 0보다 크면서, CreateAt 이 가장 오래된 값이 선입선출에 의해 사용되어야 할 MemberPointDetail 입니다. 
-7. 새로 삽입하는 행의 MemberPointDetailGroupId 를 사용되어야 할 MemberPointDetail 의 MemberPointDetailGroupId 로 설정합니다. 
-8. 선입선출의 사용대상이 되는 행의 Amount와 요청값의 Amount 중 더 작은 값을 Amount 로 설정하고, 요청값의 Amount 를 감산합니다.
-9. 후에 MemberPointDetailGroupId 로 다시 그룹 쿼리를 실행했을 때, 결과값이 새로 삽입한 행의 Amount 만큼 감산됩니다. 
-10. 사용할 요청값이 0이 될 때까지 4~9번을 반복합니다.
-11. 결과값으로 MemberPointEvent 를 반환합니다.
+1. Redisson 을 이용해, MemberId 를 키로 가지는 Lock 을 생성합니다. (동시성 제어)
+2. MemberPointDetail 을 조회하여, 사용 가능한 금액을 조회합니다.
+3. 조회된 금액이 요청값보다 작다면, 적립금 사용이 불가능하므로 예외를 발생시킵니다. 
+4. MemberPointEvent 를 생성합니다. 
+5. MemberPointEvent 와 1:N 관계를 가지는 MemberPointDetail 테이블에도 행을 삽입합니다. 
+6. 이 때, MemberPointDetail 테이블을 MemberPointDetailGroupId 로 그룹화하여 Amount 를 합산합니다. (MemberPointDetailRemain)
+7. 합산값이 0보다 크면서, CreateAt 이 가장 오래된 값이 선입선출에 의해 사용되어야 할 MemberPointDetail 입니다. 
+8. 새로 삽입하는 행의 MemberPointDetailGroupId 를 사용되어야 할 MemberPointDetail 의 MemberPointDetailGroupId 로 설정합니다. 
+9. 선입선출의 사용대상이 되는 행의 Amount와 요청값의 Amount 중 더 작은 값을 Amount 로 설정하고, 요청값의 Amount 를 감산합니다. 
+10. 후에 MemberPointDetailGroupId 로 다시 그룹 쿼리를 실행했을 때, 결과값이 새로 삽입한 행의 Amount 만큼 감산됩니다. 
+11. 사용할 요청값이 0이 될 때까지 5~10번을 반복합니다. 
+12. 결과값으로 MemberPointEvent 를 반환합니다.
+13. Lock 을 해제합니다.
 
 ---
 
