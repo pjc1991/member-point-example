@@ -11,6 +11,7 @@ import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepositoryCu
 import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepository;
 import dev.pjc1991.commerce.member.point.service.MemberPointService;
 import dev.pjc1991.commerce.member.service.MemberService;
+import dev.pjc1991.commerce.util.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -42,8 +43,10 @@ public class MemberPointServiceImpl implements MemberPointService {
     private final MemberService memberService;
 
     private final RedissonClient redissonClient;
+    private final RedisUtil redisUtil;
 
     private final MemberPointService self;
+
 
 
     /**
@@ -55,6 +58,8 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @param memberPointDetailRepository       회원 적립금 상세 내역 레포지토리
      * @param memberPointDetailRepositoryCustom 회원 적립금 상세 내역 레포지토리 커스텀 (QueryDSL)
      * @param memberService                     회원 서비스
+     * @param redissonClient                    Redisson 클라이언트
+     * @param redisUtil                         Redis 유틸
      * @param self                              자가 주입된 인스턴스
      */
     @Lazy
@@ -65,6 +70,7 @@ public class MemberPointServiceImpl implements MemberPointService {
             , MemberPointDetailRepositoryCustom memberPointDetailRepositoryCustom
             , MemberService memberService
             , RedissonClient redissonClient
+            , RedisUtil redisUtil
             , MemberPointService self
     ) {
         this.memberPointEventRepository = memberPointEventRepository;
@@ -73,6 +79,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         this.memberPointDetailRepositoryCustom = memberPointDetailRepositoryCustom;
         this.memberService = memberService;
         this.redissonClient = redissonClient;
+        this.redisUtil = redisUtil;
         this.self = self;
     }
 
@@ -120,17 +127,6 @@ public class MemberPointServiceImpl implements MemberPointService {
         return memberPointEventRepositoryCustom.getMemberPointEvents(search);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public MemberPointEvent getMemberPointEvent(long memberPointEventId) {
-        return memberPointEventRepository.findById(memberPointEventId).orElseThrow(() -> new MemberPointEventNotFound("회원 적립금 이벤트가 존재하지 않습니다."));
-    }
-
-    @Override
-    public MemberPointEventResponse getMemberPointEventResponse(long memberPointEventId) {
-        return new MemberPointEventResponse(self.getMemberPointEvent(memberPointEventId));
-    }
-
     /**
      * 회원 적립금 적립/사용 내역 조회 (Response)
      * 적립금 적립/사용 내역을 조회해서, DTO 형태로 반환합니다.
@@ -140,14 +136,36 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "memberPointEventResponse", key = "#search.memberId + #search.page + #search.size")
     public Page<MemberPointEventResponse> getMemberPointEventResponses(MemberPointEventSearch search) {
         return self.getMemberPointEvents(search).map(MemberPointEventResponse::new);
     }
 
     /**
+     * 회원 적립금 단건 내역 조회
+     * 적립금 적립/사용 내역을 조회합니다.
+     * @param memberPointEventId 회원 적립금 이벤트 아이디
+     * @return 회원 적립금 적립/사용 내역 (MemberPointEvent)
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public MemberPointEvent getMemberPointEvent(long memberPointEventId) {
+        return memberPointEventRepository.findById(memberPointEventId).orElseThrow(() -> new MemberPointEventNotFound("회원 적립금 이벤트가 존재하지 않습니다."));
+    }
+
+    /**
+     * 회원 적립금 단건 내역 조회 (Response)
+     * @param memberPointEventId 회원 적립금 이벤트 아이디
+     * @return 회원 적립금 적립/사용 내역 (MemberPointEvent)
+     */
+    @Override
+    public MemberPointEventResponse getMemberPointEventResponse(long memberPointEventId) {
+        return new MemberPointEventResponse(self.getMemberPointEvent(memberPointEventId));
+    }
+
+    /**
      * 회원에게 적립금 적립
      * 적립금을 적립할 때, 적립금 적립 이벤트와 적립금 적립 상세 내역을 나눠서 저장합니다.
-     *
      * @param memberPointCreate 회원 적립금 생성에 필요한 값을 담고 있는 DTO
      * @return 회원 적립금 적립 내역 (MemberPointEvent)
      */
@@ -171,6 +189,11 @@ public class MemberPointServiceImpl implements MemberPointService {
         // 회원 적립금 상세 내역의 그룹 아이디를 업데이트합니다.
         detail.updateGroupIdSelf();
         memberPointDetailRepository.save(detail);
+
+        // 적립금 적립은 사용 가능한 적립금 상세 내역 조회의 캐시를 초기화합니다.
+        evictMemberPointDetailAvailable(memberPointCreate.getMemberId());
+        // 회원 적립금 적립/사용 내역 조회의 캐시를 초기화합니다.
+        eventMemberPointEvent(memberPointCreate.getMemberId());
         return event;
     }
 
@@ -201,6 +224,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     @Caching(evict = {
             @CacheEvict(value = "memberPointTotal", key = "#memberPointUseRequest.memberId")
     })
+    @Transactional(timeout = 1)
     public MemberPointEvent useMemberPoint(MemberPointUseRequest memberPointUseRequest) {
         // 회원을 조회합니다.
         Member member = memberService.getMemberReferenceById(memberPointUseRequest.getMemberId());
@@ -234,12 +258,19 @@ public class MemberPointServiceImpl implements MemberPointService {
             memberPointDetails.forEach(MemberPointDetail::updateRefundGroupIdSelf);
             memberPointDetailRepository.saveAll(memberPointDetails);
 
+            // 회원 적립금 적립/사용 내역 조회의 캐시를 초기화합니다.
+            eventMemberPointEvent(member.getId());
             return useEvent;
 
         } catch (InterruptedException e) {
             throw new MemberPointConcurrentException("동시에 적립금 사용 요청이 들어왔습니다. 잠시 후 다시 시도해주세요.");
         } finally {
-            lock.unlock();
+            try {
+                lock.unlock();
+            } catch (IllegalMonitorStateException e) {
+                // 이미 잠금이 해제되었을 경우 예외가 발생합니다.
+                log.error("잠금이 이미 해제되었습니다.");
+            }
         }
 
     }
@@ -291,6 +322,11 @@ public class MemberPointServiceImpl implements MemberPointService {
         List<MemberPointDetail> rollbacks = event.getMemberPointDetails().stream().map(detail -> MemberPointDetail.rollbackMemberPointDetail(detail, event)).toList();
         memberPointDetailRepository.saveAll(rollbacks);
 
+        // 사용 취소는 사용 가능한 적립금 상세 내역 조회의 캐시를 초기화합니다.
+        evictMemberPointDetailAvailable(event.getMember().getId());
+
+        // 회원 적립금 적립/사용 내역 조회의 캐시를 초기화합니다.
+        eventMemberPointEvent(event.getMember().getId());
         return event;
     }
 
@@ -352,6 +388,9 @@ public class MemberPointServiceImpl implements MemberPointService {
 
             // 만료된 적립금 회원의 캐싱을 초기화합니다.
             self.clearMemberPointTotalCache(memberPointDetailRemain.getMemberId());
+
+            // 회원 적립금 적립/사용 내역 조회의 캐시를 초기화합니다.
+            eventMemberPointEvent(memberPointDetailRemain.getMemberId());
         }
     }
 
@@ -530,4 +569,24 @@ public class MemberPointServiceImpl implements MemberPointService {
         search.setPage(search.getPage() + 1);
         return useAmountRemain;
     }
+
+    /**
+     * 회원 적립금 적립/사용 내역의 캐시를 초기화합니다.
+     * @param memberId 회원 아이디
+     */
+    private void eventMemberPointEvent(long memberId) {
+        // 회원 적립금 적립/사용 내역 조회의 캐시를 초기화합니다.
+        String keyPattern = "#" + memberId + "*";
+        redisUtil.evictCacheWithPattern("memberPointEventResponse", keyPattern);
+    }
+
+    /**
+     * 사용 가능한 회원 적립금 상세 내역의 캐시를 초기화합니다.
+     * @param memberId 회원 아이디
+     */
+    private void evictMemberPointDetailAvailable(long memberId) {
+        String keyPattern = "#" + memberId + "*";
+        redisUtil.evictCacheWithPattern("memberPointDetailAvailable", keyPattern);
+    }
+
 }

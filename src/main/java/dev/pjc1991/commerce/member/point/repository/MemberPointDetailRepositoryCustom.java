@@ -13,6 +13,7 @@ import dev.pjc1991.commerce.member.point.dto.MemberPointDetailRemain;
 import dev.pjc1991.commerce.member.point.dto.MemberPointDetailSearch;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 
@@ -86,14 +87,18 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
 
     /**
      * 사용할 수 있는 가장 오래된 적립금 상세 내역부터 조회합니다.
+     * 페이지를 이용해서 조회하는데 빈 페이지가 조회되면 캐시를 사용합니다.
      *
      * @param search 회원 적립금 상세 내역 조회 파라메터를 담은 오브젝트입니다.
      * @return 회원 적립금 상세 내역을 담은 페이지 오브젝트입니다.
      */
+    @Cacheable(
+            value = "memberPointDetailAvailable", key = "#search.memberId + #search.size + #search.offset"
+            , unless = "#result.size() != 0"
+    )
     public List<MemberPointDetailRemain> getMemberPointDetailAvailable(MemberPointDetailSearch search) {
         // 적립금 상세 내역에서 회원 아이디로 조회합니다.
         // 실행되는 SQL 은 다음과 같습니다.
-
         /*
         WITH CTE AS (
             SELECT
