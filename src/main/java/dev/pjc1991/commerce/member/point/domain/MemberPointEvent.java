@@ -27,7 +27,8 @@ import java.util.Set;
         name = "MEMBER_POINT_EVENT"
         , indexes = {
         @Index(name = "IDX_MEMBER_POINT_EVENT_CREATED_AT", columnList = "CREATED_AT"),
-        @Index(name = "IDX_MEMBER_POINT_EVENT_EXPIRE_AT", columnList = "EXPIRE_AT")
+        @Index(name = "IDX_MEMBER_POINT_EVENT_EXPIRE_AT", columnList = "EXPIRE_AT"),
+        @Index(name = "IDX_MEMBER_POINT_EVENT_TYPE", columnList = "TYPE")
 }
 )
 @Getter
