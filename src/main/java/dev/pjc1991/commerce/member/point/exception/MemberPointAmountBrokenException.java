@@ -11,5 +11,6 @@ public class MemberPointAmountBrokenException extends IllegalStateException{
     private static final long serialVersionUID = 1L;
 
     public MemberPointAmountBrokenException(String message) {
+        super(message);
     }
 }
