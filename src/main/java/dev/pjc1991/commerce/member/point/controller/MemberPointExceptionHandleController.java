@@ -79,7 +79,7 @@ public class MemberPointExceptionHandleController {
      * 회원 적립금 타입이 잘못된 경우 발생하는 예외
      *
      * @param request 요청
-     * @param e
+     * @param e      예외
      * @return 에러 응답
      */
     @ExceptionHandler(BadMemberPointTypeException.class)
