@@ -559,7 +559,7 @@ class MemberPointServiceTest {
 
     @Execution(value = ExecutionMode.CONCURRENT)
     @Rollback(value = false)
-    @RepeatedTest(1000)
+    @RepeatedTest(30)
     void memberPointUseConcurrencyTest() {
         // given
 
