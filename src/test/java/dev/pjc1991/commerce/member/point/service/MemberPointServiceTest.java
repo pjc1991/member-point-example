@@ -367,9 +367,9 @@ class MemberPointServiceTest {
 
         long totalUse = stopWatch.getTaskInfo()[1].getTimeMillis();
         long useTime = totalUse / useCount;
-        log.info("회원 적립금 적립 횟수 : {}ms", numberOfTest);
+        log.info("회원 적립금 적립 횟수 : {}회", numberOfTest);
         log.info("회원 적립금 1회 적립에 소요된 시간 : {}ms", earnTime);
-        log.info("회원 적립금 사용 횟수 : {} ms", useCount);
+        log.info("회원 적립금 사용 횟수 : {}회", useCount);
         log.info("회원 적립금 1회 사용에 소요된 시간 : {}ms", useTime);
         log.info("회원 적립금 적립에 총 소요된 시간 : {}ms", totalEarn);
         log.info("회원 적립금 사용에 총 소요된 시간 : {}ms", totalUse);
