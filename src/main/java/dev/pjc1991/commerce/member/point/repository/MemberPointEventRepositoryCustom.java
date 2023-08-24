@@ -2,6 +2,7 @@ package dev.pjc1991.commerce.member.point.repository;
 
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
+import dev.pjc1991.commerce.member.point.domain.MemberPointDetail;
 import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.domain.QMemberPointDetail;
 import dev.pjc1991.commerce.member.point.domain.QMemberPointEvent;
@@ -44,16 +45,11 @@ public class MemberPointEventRepositoryCustom extends QuerydslRepositorySupport 
         query.where(
                 QMemberPointEvent.memberPointEvent.member.id.eq(search.getMemberId()),
                 QMemberPointEvent.memberPointEvent.id.notIn(
-                        // 회원 적립금 상세 내역의 합계가 0이면서 타입이 USE인 이벤트는 제외합니다.
-                        // 이는 적립금 사용 이벤트가 취소되었을 때, 취소된 이벤트를 제외하기 위함입니다.
+                        // 이벤트의 타입이 USE 이면서 상세 내역에 타입이 CANCLE 이 포함된 이벤트를 제외합니다.
                         JPAExpressions.select(memberPointEvent2.id)
                                 .from(memberPointDetail)
-                                .groupBy(memberPointDetail.memberPointEvent.id)
-                                .having(memberPointDetail.amount.sum().eq(0))
-                                .where(
-                                        memberPointEvent2.member.id.eq(search.getMemberId()),
-                                        memberPointEvent2.type.eq(MemberPointEvent.MemberPointEventType.USE
-                                        ))
+                                .innerJoin(memberPointEvent2).on(memberPointDetail.memberPointEvent.id.eq(memberPointEvent2.id))
+                                .where(memberPointDetail.type.eq(MemberPointDetail.MemberPointDetailType.CANCEL))
                 )
         );
 
