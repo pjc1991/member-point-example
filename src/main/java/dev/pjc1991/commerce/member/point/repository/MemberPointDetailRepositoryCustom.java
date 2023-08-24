@@ -152,7 +152,8 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
                         .where(
                                 memberPointDetail.memberPointEvent.member.id.eq(search.getMemberId()),
                                 memberPointDetail.expireAt.after(LocalDateTime.now()),
-                                memberPointDetail.amount.gt(0)
+                                memberPointDetail.amount.gt(0),
+                                memberPointDetail.type.eq(MemberPointDetail.MemberPointDetailType.EARN)
                         )
                         .orderBy(memberPointDetail.createdAt.asc(), memberPointDetail.id.asc())
                         .limit(search.getSize())
