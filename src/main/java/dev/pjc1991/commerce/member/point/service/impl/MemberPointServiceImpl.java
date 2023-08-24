@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -210,7 +211,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         RLock lock = redissonClient.getLock(lockKey);
 
         try {
-            if (!lock.tryLock(2, 5, java.util.concurrent.TimeUnit.SECONDS)) {
+            if (!lock.tryLock(2, 5, TimeUnit.SECONDS)) {
                 throw new MemberPointConcurrentException("동시에 적립금 사용 요청이 들어왔습니다. 잠시 후 다시 시도해주세요.");
             }
             // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
