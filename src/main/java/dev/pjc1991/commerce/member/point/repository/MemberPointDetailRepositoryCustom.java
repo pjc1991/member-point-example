@@ -93,7 +93,7 @@ public class MemberPointDetailRepositoryCustom extends QuerydslRepositorySupport
      * @return 회원 적립금 상세 내역을 담은 페이지 오브젝트입니다.
      */
     @Cacheable(
-            value = "memberPointDetailAvailable", key = "#search.memberId + #search.size + #search.offset"
+            value = "memberPointDetailAvailable", key = "#search.memberId + '#' + #search.size + '#' + #search.offset"
             , unless = "#result.size() != 0"
     )
     public List<MemberPointDetailRemain> getMemberPointDetailAvailable(MemberPointDetailSearch search) {

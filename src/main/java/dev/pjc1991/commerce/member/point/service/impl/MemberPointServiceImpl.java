@@ -136,7 +136,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "memberPointEventResponse", key = "#search.memberId + #search.page + #search.size")
+    @Cacheable(value = "memberPointEventResponse", key = "#search.memberId + '#' + #search.page + '#' + #search.size")
     public Page<MemberPointEventResponse> getMemberPointEventResponses(MemberPointEventSearch search) {
         return self.getMemberPointEvents(search).map(MemberPointEventResponse::new);
     }
@@ -576,7 +576,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      */
     private void eventMemberPointEvent(long memberId) {
         // 회원 적립금 적립/사용 내역 조회의 캐시를 초기화합니다.
-        String keyPattern = "#" + memberId + "*";
+        String keyPattern = memberId + "*";
         redisUtil.evictCacheWithPattern("memberPointEventResponse", keyPattern);
     }
 
@@ -585,7 +585,7 @@ public class MemberPointServiceImpl implements MemberPointService {
      * @param memberId 회원 아이디
      */
     private void evictMemberPointDetailAvailable(long memberId) {
-        String keyPattern = "#" + memberId + "*";
+        String keyPattern = memberId + "*";
         redisUtil.evictCacheWithPattern("memberPointDetailAvailable", keyPattern);
     }
 
