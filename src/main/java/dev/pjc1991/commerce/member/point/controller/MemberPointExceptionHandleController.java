@@ -153,6 +153,20 @@ public class MemberPointExceptionHandleController {
     }
 
     /**
+     * 선입선출 상에 오류가 있을 경우 발생하는 예외
+     * 예외를 외부에 완전히 노출할 경우 보안상의 문제가 발생할 수 있으므로
+     * 구체적인 에러 메시지는 노출하지 않습니다.
+     */
+
+    @ExceptionHandler(MemberPointNoFirstInFirstOutException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public ErrorResponse handleMemberPointNoFirstInFirstOutException(HttpServletRequest request, MemberPointNoFirstInFirstOutException e) {
+        logError(request, e);
+        return new ErrorResponse();
+    }
+
+    /**
      * 에러 로그를 남깁니다.
      *
      * @param request 요청
