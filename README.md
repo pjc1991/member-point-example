@@ -31,6 +31,8 @@
 
 ## 프로젝트 실행 방법
 
+### Gradle 을 이용한 방법
+
 1. 이 리포지터리를 클론하고 루트 디렉토리로 이동합니다.
 
 ```shell
@@ -48,6 +50,42 @@ cd member-point-example
 
 ```shell
 ./gradlew bootRun
+```
+
+### Docker 를 이용한 방법
+
+1. 이 리포지터리를 클론하고 루트 디렉토리로 이동합니다.
+
+```shell
+git clone https://github.com/pjc1991/member-point-example.git &&
+cd member-point-example
+```
+
+2. 다음의 명령어로 Docker 이미지를 빌드합니다.
+
+```shell
+docker-compose build
+```
+
+3. 다음의 명령어로 Docker 컨테이너를 실행합니다.
+
+```shell
+docker-compose up
+# CTRL + C 로 종료합니다.
+```
+
+4. 다음의 명령어로 어플리케이션을 종료합니다. 
+
+```shell
+docker-compose down
+```
+
+5. 어플리케이션에 변화가 있었을 경우 다시 빌드하고 실행합니다.
+
+```shell
+docker-compose down &&
+docker-compose build &&
+docker-compose up
 ```
 
 ---
