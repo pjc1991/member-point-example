@@ -45,16 +45,16 @@ public class MemberPointServiceImpl implements MemberPointService {
     private final MemberPointService self;
 
 
-
     /**
      * 생성자 주입 방식을 사용합니다.
      * 자가 주입을 위해 @Lazy 를 사용합니다.
-     * @param memberPointEventRepository 회원 적립금 이벤트 레포지토리
-     * @param memberPointEventRepositoryCustom 회원 적립금 이벤트 레포지토리 커스텀 (QueryDSL)
-     * @param memberPointDetailRepository 회원 적립금 상세 내역 레포지토리
+     *
+     * @param memberPointEventRepository        회원 적립금 이벤트 레포지토리
+     * @param memberPointEventRepositoryCustom  회원 적립금 이벤트 레포지토리 커스텀 (QueryDSL)
+     * @param memberPointDetailRepository       회원 적립금 상세 내역 레포지토리
      * @param memberPointDetailRepositoryCustom 회원 적립금 상세 내역 레포지토리 커스텀 (QueryDSL)
-     * @param memberService 회원 서비스
-     * @param self 자가 주입된 인스턴스
+     * @param memberService                     회원 서비스
+     * @param self                              자가 주입된 인스턴스
      */
     @Lazy
     public MemberPointServiceImpl(
@@ -210,7 +210,9 @@ public class MemberPointServiceImpl implements MemberPointService {
         RLock lock = redissonClient.getLock(lockKey);
 
         try {
-            lock.tryLock(2, 5, java.util.concurrent.TimeUnit.SECONDS);
+            if (!lock.tryLock(2, 5, java.util.concurrent.TimeUnit.SECONDS)) {
+                throw new MemberPointConcurrentException("동시에 적립금 사용 요청이 들어왔습니다. 잠시 후 다시 시도해주세요.");
+            }
             // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
             int memberPointTotal = self.getMemberPointTotal(memberPointUseRequest.getMemberId());
             // 사용하려는 적립금이 총액보다 크다면 예외를 발생시킵니다.
@@ -294,6 +296,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     /**
      * 회원 적립금 사용 취소
      * 사용된 적립금 사용을 취소합니다. 환불이 아니고 롤백이기 때문에, MemberPointEvent 의 상세 내역을 삭제하지 않습니다.
+     *
      * @param memberPointEventId
      * @return 회원 적립금 사용 이벤트
      */
@@ -308,6 +311,7 @@ public class MemberPointServiceImpl implements MemberPointService {
 
     /**
      * 회원 적립금 합계의 캐시를 초기화합니다.
+     *
      * @param memberId 회원 아이디
      */
     @Override
@@ -353,8 +357,9 @@ public class MemberPointServiceImpl implements MemberPointService {
     /**
      * 회원 적립금 만료 시점 변경 (테스트 전용)
      * 테스트 코드에서만 사용합니다.
+     *
      * @param memberPointEventId 회원 적립금 이벤트 아이디
-     * @param expireAt 변경할 만료 시점
+     * @param expireAt           변경할 만료 시점
      */
     @Override
     @Caching(evict = {
@@ -412,7 +417,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         MemberPointDetailRemain LatestUsed = memberPointDetails.get(0);
 
         for (MemberPointDetailRemain row : memberPointDetails) {
-            if(row.getUsed() != 0 && row.getCreatedAt().isAfter(LatestUsed.getCreatedAt())) {
+            if (row.getUsed() != 0 && row.getCreatedAt().isAfter(LatestUsed.getCreatedAt())) {
                 LatestUsed = row;
             }
         }
@@ -437,14 +442,15 @@ public class MemberPointServiceImpl implements MemberPointService {
         }
         log.info("적립금이 선입선출 형태로 사용되었습니다.");
 
-}
+    }
 
     /**
      * 회원 적립금 사용 상세 내역 생성
      * 적립금을 사용할 떄, 적립금 상세 내역을 생성합니다.
      * 적립된 적립금을 선입선출로 사용해야 합니다.
+     *
      * @param memberPointUseRequest 적립금 사용 요청
-     * @param useEvent 적립금 사용 이벤트
+     * @param useEvent              적립금 사용 이벤트
      * @return 생성된 적립금 상세 내역 리스트
      */
     private List<MemberPointDetail> createMemberPointDetailUse(MemberPointUseRequest memberPointUseRequest, MemberPointEvent useEvent) {
