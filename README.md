@@ -52,6 +52,151 @@ cd member-point-example
 
 ---
 
+## 도메인 설계
+
+### 회원 적립금 이벤트 도메인 
+```java
+// MemberPointEvent.java
+/**
+ * 회원 적립금 이벤트 내역 도메인
+ */
+@Entity
+@Table(name = "MEMBER_POINT_EVENT")
+public class MemberPointEvent {
+
+  /**
+   * 회원 적립금 이벤트 ID
+   */
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "ID", nullable = false)
+  private Long id;
+
+  /**
+   * 회원
+   */
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "MEMBER_ID", nullable = false)
+  private Member member;
+
+  /**
+   * 회원 적립금 적립/사용 금액
+   * 적립: 양수, 사용: 음수
+   */
+  @Column(name = "AMOUNT", nullable = false)
+  private int amount;
+
+  /**
+   * 회원 적립금 적립/사용 내역
+   */
+  @OneToMany(mappedBy = "memberPointEvent", cascade = CascadeType.ALL)
+  private Set<MemberPointDetail> memberPointDetails = new HashSet<>();
+
+  /**
+   * 회원 적립금 만료 시점
+   */
+  @Column(name = "EXPIRE_AT")
+  private LocalDateTime expireAt;
+
+  /**
+   * 회원 적립금 생성 시점
+   */
+  @Column(name = "CREATED_AT", nullable = false)
+  private LocalDateTime createdAt;
+
+  /**
+   * 회원 적립금 이벤트 종류
+   */
+  @Column(name = "TYPE", nullable = false)
+  @Enumerated(EnumType.STRING)
+  private MemberPointEventType type;
+  
+  /**
+   * 회원 적립금 이벤트 종류
+   */
+  public enum MemberPointEventType {
+    EARN, // 적립
+    USE, // 사용
+    EXPIRE, // 만료
+  }
+}
+```
+### 회원 적립금 상세 도메인 
+```java
+// MemberPointDetail.java
+/**
+ * 회원 적립금 상세 내역 도메인
+ */
+@Entity
+@Table(name = "MEMBER_POINT_DETAIL")
+public class MemberPointDetail {
+
+  /**
+   * 회원 적립금 상세 내역 ID
+   */
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "ID", nullable = false)
+  private Long id;
+
+  /**
+   * 회원 적립금 이벤트
+   * 이 상세 내역을 생성한 이벤트
+   */
+  @JsonIgnore
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "MEMBER_POINT_EVENT_ID", nullable = false)
+  private MemberPointEvent memberPointEvent;
+
+  /**
+   * 회원 적립금 상세 내역 그룹 ID
+   * 합계를 계산할 때 이 ID를 기준으로 합계를 계산합니다. (GROUP BY)
+   * 이 상세 내역이 적립금 사용, 만료일 경우 사용 대상이 되는 상세 내역의 ID
+   */
+  @Column(name = "MEMBER_POINT_DETAIL_GROUP_ID")
+  private Long memberPointDetailGroupId;
+
+  /**
+   * 회원 적립금 상세 내역 환불 ID
+   * 이 상세 내역이 적립금 환불일 경우, 대상이 되는 상세 내역의 ID
+   */
+  @Column(name = "MEMBER_POINT_DETAIL_REFUND_ID")
+  private Long memberPointDetailRefundId;
+
+  /**
+   * 포인트 적립/사용량
+   * 적립: 양수, 사용: 음수
+   */
+  @Column(name = "AMOUNT", nullable = false)
+  private int amount;
+
+
+  /**
+   * 발생 시점
+   */
+  @Column(name = "CREATED_AT", nullable = false)
+  private LocalDateTime createdAt;
+
+  /**
+   * 만료 시점
+   */
+  @Column(name = "EXPIRE_AT", nullable = false)
+  private LocalDateTime expireAt;
+  
+  /**
+   * 회원 적립금 상세 내역의 타입 열거형입니다.
+   */
+  public enum MemberPointDetailType {
+    USE,
+    EARN,
+    EXPIRE,
+    CANCEL
+  }
+}
+```
+
+--- 
+
 ## 기능 명세
 
 ### API - 회원별 적립금 합계 조회
@@ -76,6 +221,16 @@ curl -X GET http://localhost:8080/member/1/point/total
 
 - memberId : 회원 ID (long)
 - totalPoint : 적립금 합계 (Integer)
+
+---
+
+#### 기능 구조
+
+1. MemberPointDetail 테이블을 조회하여 AMOUNT 칼럼을 합산합니다.
+2. 이 때 조회 조건 (WHERE) 은 MEMBER_ID 와 EXPIRE_AT 을 사용합니다.
+3. 자주 사용되는 쿼리이고 많은 행을 조회해야할 수 있으므로, REDIS 를 이용하여 캐싱합니다. 
+4. 값이 변경될 가능성이 있는 적립, 사용, 사용 취소가 일어날 경우 캐싱을 삭제합니다.
+
 ---
 
 >dev.pjc1991.commerce.member.point.controller.MemberPointController.java
@@ -188,6 +343,14 @@ curl -X GET http://localhost:8080/member/1/point
 - empty : 현재 페이지가 비어있는지 여부 (Boolean)
 ---
 
+#### 기능 구조
+
+1. MemberPointEvent 테이블을 조회해 검색 조건에 맞는 행들을 조회합니다.
+2. 검색 조건은 MemberId 입니다.
+3. 롤백 처리가 된 적립금 사용 내역은 제외하기 위해서, 서브 쿼리로 추가 조건을 줍니다.
+4. 페이징 값을 이용해 페이징 처리를 하고 출력합니다. 
+
+---
 >dev.pjc1991.commerce.member.point.controller.MemberPointController.java
 
 구체적인 코드는 해당 경로에서 확인 가능합니다.
@@ -228,6 +391,16 @@ curl -X POST http://localhost:8080/member/1/point/earn \
   - EARN : 적립
 - createdAt : 적립일 (LocalDateTime)
 - expireAt : 적립금 만료일 (LocalDateTime)
+- 
+---
+
+#### 기능 구조
+
+1. 요청값에 따라서 MemberPointEvent 에 행을 삽입합니다.
+2. MemberPointEvent 과 1:N 관계를 가지는 MemberPointDetail 테이블에도 행을 삽입합니다.
+3. MemberPointDetail 에 행을 삽입한 이후, 해당 행의 MemberPointDetailGroupId 를 자기 자신의 값으로 업데이트 해줍니다.  
+4. 결과 값으로 MemberPointEvent 를 반환합니다.
+
 ---
 
 >dev.pjc1991.commerce.member.point.controller.MemberPointController.java
@@ -274,6 +447,22 @@ curl -X POST http://localhost:8080/member/1/point/use \
 - expireAt : 적립금 만료일 (LocalDateTime)
   - 적립금 사용 내역은 만료일이 없으므로 null로 표현합니다.
   
+---
+
+#### 기능 구조
+
+1. MemberPointDetail 을 조회하여, 사용 가능한 금액을 조회합니다.
+2. 조회된 금액이 요청값보다 작다면, 적립금 사용이 불가능하므로 예외를 발생시킵니다.
+3. MemberPointEvent 를 생성합니다. 
+4. MemberPointEvent 와 1:N 관계를 가지는 MemberPointDetail 테이블에도 행을 삽입합니다. 
+5. 이 때, MemberPointDetail 테이블을 MemberPointDetailGroupId 로 그룹화하여 Amount 를 합산합니다. (MemberPointDetailRemain)
+6. 합산값이 0보다 크면서, CreateAt 이 가장 오래된 값이 선입선출에 의해 사용되어야 할 MemberPointDetail 입니다. 
+7. 새로 삽입하는 행의 MemberPointDetailGroupId 를 사용되어야 할 MemberPointDetail 의 MemberPointDetailGroupId 로 설정합니다. 
+8. 선입선출의 사용대상이 되는 행의 Amount와 요청값의 Amount 중 더 작은 값을 Amount 로 설정하고, 요청값의 Amount 를 감산합니다.
+9. 후에 MemberPointDetailGroupId 로 다시 그룹 쿼리를 실행했을 때, 결과값이 새로 삽입한 행의 Amount 만큼 감산됩니다. 
+10. 사용할 요청값이 0이 될 때까지 4~9번을 반복합니다.
+11. 결과값으로 MemberPointEvent 를 반환합니다.
+
 ---
 
 >dev.pjc1991.commerce.member.point.controller.MemberPointController.java
@@ -345,6 +534,15 @@ public class MemberPointScheduledTasks {
   }
 }
 ```
+
+---
+
+#### 기능 구조
+
+1. 크론을 이용해 매일 자정 ScheduledTasks 를 실행합니다.
+2. MemberPointDetail 테이블을 조회해, 만료시간이 현 시각보다 이전이면서, 그룹별 금액 합계가 0보다 큰 그룹들을 조회합니다. (MemberPointDetailRemain)
+3. 해당 그룹에 대해, 회원 적립금 만료 이벤트와 그에 따른 회원 적립금 상세 내역을 생성합니다. 
+4. 만료 내역을 생성할 때 시스템에 로그를 남깁니다.
 
 ---
 
