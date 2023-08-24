@@ -45,7 +45,7 @@ public class MemberPointEventRepositoryCustom extends QuerydslRepositorySupport 
         query.where(
                 QMemberPointEvent.memberPointEvent.member.id.eq(search.getMemberId()),
                 QMemberPointEvent.memberPointEvent.id.notIn(
-                        // 이벤트의 타입이 USE 이면서 상세 내역에 타입이 CANCLE 이 포함된 이벤트를 제외합니다.
+                        // 이벤트의 타입이 USE 이면서 상세 내역에 타입이 CANCEL 이 포함된 이벤트를 제외합니다.
                         JPAExpressions.select(memberPointEvent2.id)
                                 .from(memberPointDetail)
                                 .innerJoin(memberPointEvent2).on(memberPointDetail.memberPointEvent.id.eq(memberPointEvent2.id))
