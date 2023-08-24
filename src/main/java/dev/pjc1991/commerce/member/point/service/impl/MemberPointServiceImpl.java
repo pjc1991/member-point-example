@@ -12,6 +12,8 @@ import dev.pjc1991.commerce.member.point.repository.MemberPointEventRepository;
 import dev.pjc1991.commerce.member.point.service.MemberPointService;
 import dev.pjc1991.commerce.member.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -38,6 +40,8 @@ public class MemberPointServiceImpl implements MemberPointService {
     private final MemberPointDetailRepositoryCustom memberPointDetailRepositoryCustom;
     private final MemberService memberService;
 
+    private final RedissonClient redissonClient;
+
     private final MemberPointService self;
 
 
@@ -59,6 +63,7 @@ public class MemberPointServiceImpl implements MemberPointService {
             , MemberPointDetailRepository memberPointDetailRepository
             , MemberPointDetailRepositoryCustom memberPointDetailRepositoryCustom
             , MemberService memberService
+            , RedissonClient redissonClient
             , MemberPointService self
     ) {
         this.memberPointEventRepository = memberPointEventRepository;
@@ -66,6 +71,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         this.memberPointDetailRepository = memberPointDetailRepository;
         this.memberPointDetailRepositoryCustom = memberPointDetailRepositoryCustom;
         this.memberService = memberService;
+        this.redissonClient = redissonClient;
         this.self = self;
     }
 
@@ -199,27 +205,40 @@ public class MemberPointServiceImpl implements MemberPointService {
         Member member = memberService.getMemberReferenceById(memberPointUseRequest.getMemberId());
         memberPointUseRequest.setOwner(member);
 
-        // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
-        int memberPointTotal = self.getMemberPointTotal(memberPointUseRequest.getMemberId());
-        // 사용하려는 적립금이 총액보다 크다면 예외를 발생시킵니다.
-        if (memberPointTotal - memberPointUseRequest.getAmount() < 0) {
-            throw new NotEnoughPointException("적립금이 부족합니다.");
+        // 포인트 사용은 동시성 문제를 일으킬 수 있으므로 Redisson 을 사용해서 Lock 을 걸어줍니다.
+        String lockKey = "memberPointUseLock#" + memberPointUseRequest.getMemberId();
+        RLock lock = redissonClient.getLock(lockKey);
+
+        try {
+            lock.tryLock(2, 5, java.util.concurrent.TimeUnit.SECONDS);
+            // 현 시점에서 사용 가능한 적립금의 총액을 계산합니다.
+            int memberPointTotal = self.getMemberPointTotal(memberPointUseRequest.getMemberId());
+            // 사용하려는 적립금이 총액보다 크다면 예외를 발생시킵니다.
+            if (memberPointTotal - memberPointUseRequest.getAmount() < 0) {
+                throw new NotEnoughPointException("적립금이 부족합니다.");
+            }
+
+            // 회원 적립금 사용 이벤트를 생성합니다.
+            MemberPointEvent useEvent = MemberPointEvent.useMemberPoint(memberPointUseRequest);
+            useEvent = memberPointEventRepository.save(useEvent);
+
+            // 회원 적립금 상세 내역을 생성합니다.
+            List<MemberPointDetail> memberPointDetails = createMemberPointDetailUse(memberPointUseRequest, useEvent);
+
+            // 회원 적립금 상세 내역을 저장합니다.
+            memberPointDetailRepository.saveAll(memberPointDetails);
+            // 회원 적립금 상세 내역의 그룹 아이디를 업데이트합니다.
+            memberPointDetails.forEach(MemberPointDetail::updateRefundGroupIdSelf);
+            memberPointDetailRepository.saveAll(memberPointDetails);
+
+            return useEvent;
+
+        } catch (InterruptedException e) {
+            throw new MemberPointConcurrentException("동시에 적립금 사용 요청이 들어왔습니다. 잠시 후 다시 시도해주세요.");
+        } finally {
+            lock.unlock();
         }
 
-        // 회원 적립금 사용 이벤트를 생성합니다.
-        MemberPointEvent useEvent = MemberPointEvent.useMemberPoint(memberPointUseRequest);
-        useEvent = memberPointEventRepository.save(useEvent);
-
-        // 회원 적립금 상세 내역을 생성합니다.
-        List<MemberPointDetail> memberPointDetails = createMemberPointDetailUse(memberPointUseRequest, useEvent);
-
-        // 회원 적립금 상세 내역을 저장합니다.
-        memberPointDetailRepository.saveAll(memberPointDetails);
-        // 회원 적립금 상세 내역의 그룹 아이디를 업데이트합니다.
-        memberPointDetails.forEach(MemberPointDetail::updateRefundGroupIdSelf);
-        memberPointDetailRepository.saveAll(memberPointDetails);
-
-        return useEvent;
     }
 
     /**

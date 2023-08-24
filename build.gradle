@@ -60,6 +60,9 @@ dependencies {
 	// com.fasterxml.jackson.datatype:jackson-datatype-jsr310
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+	// redisson
+	implementation 'org.redisson:redisson:3.23.3'
+
 }
 
 tasks.named('test') {
