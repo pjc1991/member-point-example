@@ -400,6 +400,10 @@ public class MemberPointServiceImpl implements MemberPointService {
 
         // 목록을 순회하면서, 선입선출 위반사항이 있는지 확인합니다.
         for (MemberPointDetailRemain row : memberPointDetails) {
+            // 잔액이 0 보다 작다면 예외를 발생시킵니다.
+            if (row.getRemain() < 0) {
+                throw new MemberPointAmountBrokenException("적립금 상세 내역의 잔액이 0 보다 작습니다.");
+            }
             // 만약 가장 최신 적립금 상세 그룹의 생성 시점보다 이전에 생성된 적립금 상세 그룹이고, 잔액이 0이 아니라면 예외를 발생시킵니다.
             if (row.getCreatedAt().isBefore(LatestUsed.getCreatedAt()) && row.getRemain() != 0) {
                 log.error("적립금이 선입선출 형태로 사용되지 않았습니다.");
