@@ -79,7 +79,7 @@ public class MemberPointExceptionHandleController {
      * 회원 적립금 타입이 잘못된 경우 발생하는 예외
      *
      * @param request 요청
-     * @param e
+     * @param e      예외
      * @return 에러 응답
      */
     @ExceptionHandler(BadMemberPointTypeException.class)
@@ -148,6 +148,20 @@ public class MemberPointExceptionHandleController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
     public ErrorResponse handleMemberPointAmountBrokenException(HttpServletRequest request, MemberPointAmountBrokenException e) {
+        logError(request, e);
+        return new ErrorResponse();
+    }
+
+    /**
+     * 선입선출 상에 오류가 있을 경우 발생하는 예외
+     * 예외를 외부에 완전히 노출할 경우 보안상의 문제가 발생할 수 있으므로
+     * 구체적인 에러 메시지는 노출하지 않습니다.
+     */
+
+    @ExceptionHandler(MemberPointNoFirstInFirstOutException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public ErrorResponse handleMemberPointNoFirstInFirstOutException(HttpServletRequest request, MemberPointNoFirstInFirstOutException e) {
         logError(request, e);
         return new ErrorResponse();
     }

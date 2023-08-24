@@ -165,12 +165,14 @@ public class MemberPointEvent {
     /**
      * 회원 적립금의 만료 시점을 변경합니다.
      * 테스트 코드에서만 사용합니다.
-     * @param localDateTime 변경할 만료 시점
+     * @param expireAt 변경할 만료 시점
+     * @param createdAt 변경할 생성 시점
      */
-    public void setExpireAt(LocalDateTime localDateTime) {
-        log.warn("회원 적립금 이벤트의 만료 시점을 변경합니다. 이 메소드는 테스트 코드에서만 사용합니다. 변경할 만료 시점: {}", localDateTime);
-        this.expireAt = localDateTime;
-        this.getMemberPointDetails().forEach(memberPointDetail -> memberPointDetail.setExpireAt(localDateTime));
+    public void setExpireAt(LocalDateTime expireAt, LocalDateTime createdAt) {
+        log.warn("회원 적립금 이벤트의 만료 시점을 변경합니다. 이 메소드는 테스트 코드에서만 사용합니다. 변경할 만료 시점: {}", expireAt);
+        this.expireAt = expireAt;
+        this.createdAt = createdAt;
+        this.getMemberPointDetails().forEach(memberPointDetail -> memberPointDetail.setExpireAt(expireAt, createdAt));
     }
 
     /**

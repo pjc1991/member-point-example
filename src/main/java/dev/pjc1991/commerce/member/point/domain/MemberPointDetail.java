@@ -221,11 +221,12 @@ public class MemberPointDetail {
      * 회원 적립금의 만료 시점을 변경합니다.
      * 테스트 코드에서만 사용합니다.
      * MemberPointEvent 에서 사용하기 위해 protected 로 설정합니다.
-     * @param localDateTime 변경할 만료 시점
+     * @param expireAt 변경할 만료 시점
      */
-    protected void setExpireAt(LocalDateTime localDateTime) {
-        log.warn("회원 적립금 상세의 만료 시점을 변경합니다. 변경할 만료 시점: {}", localDateTime);
-        this.expireAt = localDateTime;
+    protected void setExpireAt(LocalDateTime expireAt, LocalDateTime createdAt) {
+        log.warn("회원 적립금 상세의 만료 시점을 변경합니다. 변경할 만료 시점: {}", expireAt);
+        this.expireAt = expireAt;
+        this.createdAt = createdAt;
     }
 
     /**

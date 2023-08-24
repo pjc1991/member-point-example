@@ -23,11 +23,15 @@
 - Spring Boot
 - Spring Data JPA
 - Spring Data Redis
-- H2 Database
-- Redis (Embedded)
+- JUnit 5
 - QueryDSL
 - Blazed-Persistence
-- JUnit 5
+- H2 Database
+- Redis (Embedded)
+- Redis (Docker)
+- PostgreSQL (Docker)
+- Docker
+- Docker-Compose
 
 ## 프로젝트 실행 방법
 
@@ -74,7 +78,7 @@ docker-compose up
 # CTRL + C 로 종료합니다.
 ```
 
-4. 다음의 명령어로 어플리케이션을 종료합니다. 
+4. 다음의 명령어로 컨테이너를 종료합니다.
 
 ```shell
 docker-compose down
