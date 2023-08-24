@@ -453,6 +453,7 @@ class MemberPointServiceTest {
 
         // 현재 금액을 조회합니다.
         int currentPoint = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
+        log.info("현재 적립금 : {}", currentPoint);
 
         // 만료 처리할 적립금을 생성합니다.
         int maxTestPointAmount = TEST_POINT_AMOUNT;
@@ -461,18 +462,23 @@ class MemberPointServiceTest {
 
         // 만료 처리할 적립금을 생성합니다.
         MemberPointEvent event = memberPointService.earnMemberPoint(getTestMemberPointCreateRequest(TEST_MEMBER_ID, amountPointEarn1));
+        log.info("만료 처리할 적립금 금액 : {}", event.getAmount());
+
+        // 만료 처리할 적립금의 생성 시점을 과거로 설정합니다.
+        LocalDateTime now = LocalDateTime.now();
+        memberPointService.changeExpireAt(event.getId(), now.plusYears(1L), now.minusYears(1L));
 
         // 만료 처리할 적립금의 일부를 사용합니다.
-        LocalDateTime past = LocalDateTime.now().minusMonths(5);
         int amountPointUse = Math.toIntExact(Math.round(Math.random() * amountPointEarn1) + 1);
-
         MemberPointEvent use = memberPointService.useMemberPoint(getTestMemberPointUseRequest(TEST_MEMBER_ID, amountPointUse));
-
-        // 만료 처리할 적립금의 만료 시점을 과거로 설정합니다.
-        memberPointService.changeExpireAt(event.getId(), past);
+        log.info("만료 처리할 적립금의 일부 사용 금액 : {}", use.getAmount());
 
         // 만료 처리되지 않을 적립금을 생성합니다.
         MemberPointEvent event2 = memberPointService.earnMemberPoint(getTestMemberPointCreateRequest(TEST_MEMBER_ID, amountPointEarn2));
+        log.info("만료 처리되지 않을 적립금 금액 : {}", event2.getAmount());
+
+        // 만료 처리할 적립금의 만료 시점을 과거로 설정합니다.
+        memberPointService.changeExpireAt(event.getId(), now.minusYears(1L), now.minusYears(2L));
 
         // when
         // 만료 처리를 수행합니다.

@@ -304,9 +304,6 @@ public class MemberPointServiceImpl implements MemberPointService {
      * 적립금 만료 시점을 지난 적립금 상세 내역을 조회하고, 적립금 만료 이벤트와 적립금 만료 상세 내역을 생성합니다.
      */
     @Override
-    @Caching(evict = {
-            @CacheEvict(value = "memberPointTotal", allEntries = true)
-    })
     public void expireMemberPoint() {
         // 적립금 만료 시점을 지난 적립금 상세 내역을 조회합니다.
         List<MemberPointDetailRemain> memberPointDetails = memberPointDetailRepositoryCustom.getMemberPointDetailExpired();
@@ -328,6 +325,9 @@ public class MemberPointServiceImpl implements MemberPointService {
             // 회원 적립금 상세 내역의 환불 그룹 아이디를 업데이트합니다.
             expireDetail.updateRefundGroupIdSelf();
             memberPointDetailRepository.save(expireDetail);
+
+            // 만료된 적립금 회원의 캐싱을 초기화합니다.
+            self.clearMemberPointTotalCache(memberPointDetailRemain.getMemberId());
         }
     }
 
@@ -341,7 +341,7 @@ public class MemberPointServiceImpl implements MemberPointService {
     @Caching(evict = {
             @CacheEvict(value = "memberPointTotal", allEntries = true)
     })
-    public void changeExpireAt(long memberPointEventId, LocalDateTime expireAt) {
+    public void changeExpireAt(long memberPointEventId, LocalDateTime expireAt, LocalDateTime createdAt) {
         // 테스트 전용 코드입니다.
         log.warn("회원 적립금 이벤트의 만료 시점을 변경합니다. 이 메소드는 테스트 코드에서만 사용합니다. 변경할 만료 시점: {}", expireAt);
 
@@ -352,7 +352,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         }
 
         // 만료 시점을 변경합니다.
-        memberPointEvent.setExpireAt(expireAt);
+        memberPointEvent.setExpireAt(expireAt, createdAt);
 
         // 회원 적립금 이벤트의 상세 내역 그룹 아이디를 찾습니다.
         // type 이 EARN 인 이벤트는 상세 내역 그룹이 하나만 존재합니다.
@@ -366,7 +366,7 @@ public class MemberPointServiceImpl implements MemberPointService {
         List<MemberPointEvent> memberPointDetailGroupEvents = memberPointDetailGroups.stream().map(MemberPointDetail::getMemberPointEvent).toList();
 
         // 만료 시점을 변경합니다.
-        memberPointDetailGroupEvents.forEach(memberPointEvent1 -> memberPointEvent1.setExpireAt(expireAt));
+        memberPointDetailGroupEvents.forEach(memberPointEvent1 -> memberPointEvent1.setExpireAt(expireAt, createdAt));
     }
 
     /**

@@ -124,7 +124,7 @@ public interface MemberPointService {
 
     /**
      * 회원 적립금 만료 시간 변경 (테스트 전용)
-     * 해당 회원 적립금의 만료 시간을 강제로 변경합니다.
+     * 해당 회원 적립금의 만료일과 생성일을 강제로 변경합니다.
      * 테스트 전용입니다.
      *
      * @param memberPointEventId 회원 적립금 이벤트 아이디
@@ -132,7 +132,7 @@ public interface MemberPointService {
      * @param expireAt           만료 시간
      *                           (LocalDateTime)
      */
-    void changeExpireAt(long memberPointEventId, LocalDateTime expireAt);
+    void changeExpireAt(long memberPointEventId, LocalDateTime expireAt, LocalDateTime createdAt);
 
     /**
      * 회원 적립금 일치성 검사 (테스트)
