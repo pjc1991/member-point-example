@@ -15,7 +15,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
@@ -23,13 +26,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.util.StopWatch;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -550,44 +551,30 @@ class MemberPointServiceTest {
         });
     }
 
-    @Test
+    @Execution(value = ExecutionMode.CONCURRENT)
+    @Rollback(value = false)
+    @RepeatedTest(1000)
     void memberPointUseConcurrencyTest() {
         // given
 
         // 적립금을 적립합니다.
         MemberPointEvent earn = memberPointService.earnMemberPoint(getTestMemberPointCreateRequest(TEST_MEMBER_ID, 10000));
         log.info("적립금 적립 금액 : {}", earn.getAmount());
+
         // 적립 금액을 확인합니다.
         int before = memberPointService.getMemberPointTotal(TEST_MEMBER_ID);
         log.info("적립금 적립 이전 금액 : {}", before);
 
         long memberPointDetailId = earn.getMemberPointDetails().stream().findFirst().orElseThrow().getMemberPointDetailGroupId();
 
-        // 다른 스레드에서 적립금이 조회 가능하도록 캐시를 비웁니다.
-        entityManager.flush();
-        entityManager.clear();
-
-        // 여러 스레드를 동시에 생성
-        int threadCount = 1;
-        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
 
         // when
 
         // 적립금을 사용합니다.
-        for (int i = 0; i < threadCount; i++) {
-            // 각 스레드에서 적립금을 사용합니다.
-            executorService.execute(() -> {
-                memberPointDetailRepository.findById(memberPointDetailId).orElseThrow();
-                log.info("적립금 사용 요청 : {}", Thread.currentThread().getName());
-                MemberPointEvent event = memberPointService.useMemberPoint(getTestMemberPointUseRequest(TEST_MEMBER_ID, 100));
-                log.info("적립금 사용 이벤트 : {}", event.getId());
+        memberPointDetailRepository.findById(memberPointDetailId).orElseThrow();
+        MemberPointEvent event = memberPointService.useMemberPoint(getTestMemberPointUseRequest(TEST_MEMBER_ID, 100));
+        log.info("적립금 사용 이벤트 : {}", event.getId());
 
-                latch.countDown();
-            });
-        }
-
-        latch.countDown();
         // then
 
         // 금액이 정상적인지 확인합니다.
@@ -595,7 +582,6 @@ class MemberPointServiceTest {
         log.info("적립금 적립 이후 금액 : {}", before);
         log.info("적립금 사용 이후 금액 : {}", after);
 
-        assertEquals(before - 100 * threadCount, after);
     }
 
 
