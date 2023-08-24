@@ -5,6 +5,7 @@ import dev.pjc1991.commerce.member.point.service.MemberPointService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -89,5 +90,13 @@ public class MemberPointController {
     public MemberPointEventResponse rollBackMemberPointUse(@PathVariable long memberPointEventId) {
         MemberPointEventResponse response = memberPointService.getMemberPointEventResponse(memberPointEventId);
         return memberPointService.rollbackMemberPointUseResponse(response.getMemberId(), memberPointEventId);
+    }
+
+    @GetMapping("/member/point/check/{memberId}")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<String> checkMemberPoint(@PathVariable long memberId) {
+        memberPointService.checkMemberPoint(memberId);
+        return ResponseEntity.ok("OK");
     }
 }
