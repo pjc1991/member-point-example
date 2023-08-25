@@ -2,13 +2,13 @@ package dev.pjc1991.commerce.member.point.repository;
 
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
+import dev.pjc1991.commerce.dto.PageResponse;
 import dev.pjc1991.commerce.member.point.domain.MemberPointDetail;
 import dev.pjc1991.commerce.member.point.domain.MemberPointEvent;
 import dev.pjc1991.commerce.member.point.domain.QMemberPointDetail;
 import dev.pjc1991.commerce.member.point.domain.QMemberPointEvent;
 import dev.pjc1991.commerce.member.point.dto.MemberPointEventSearch;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
@@ -68,7 +68,7 @@ public class MemberPointEventRepositoryCustom extends QuerydslRepositorySupport 
         List<MemberPointEvent> list = query.fetch();
         long totalCount = query.fetchCount();
 
-        return new PageImpl<>(list, PageRequest.of(search.getPage(), search.getSize(), Sort.by("createdAt", "id").descending()), totalCount);
+        return new PageResponse<>(list, PageRequest.of(search.getPage(), search.getSize(), Sort.by("createdAt", "id").descending()), totalCount);
     }
 
 }
