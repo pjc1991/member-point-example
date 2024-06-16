@@ -45,7 +45,7 @@ dependencies {
 	implementation 'org.postgresql:postgresql'
 
 	// Embedded Redis
-	implementation('it.ozimov:embedded-redis:0.7.3') {
+	implementation('com.github.codemonstur:embedded-redis:1.4.3') {
 		// exclude commons-logging
 		exclude group: 'commons-logging', module: 'commons-logging'
 		// exclud slf4j
